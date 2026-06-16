@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chi tiết sản phẩm - PhoneStore</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><i class="bi bi-phone-fill"></i> Phone<span>Store</span></a>
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <a href="cart.html" class="nav-link position-relative"><i class="bi bi-cart3 fs-5"></i><span class="badge bg-danger rounded-pill position-absolute top-0 end-0 cart-badge" style="display:none">0</span></a>
+      <div id="navAuth"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb-section">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="index.html" class="text-decoration-none">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="index.html" class="text-decoration-none" id="bcBrand">Điện thoại</a></li>
+        <li class="breadcrumb-item active" id="bcName">Chi tiết</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div id="productContent">
+    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+  </div>
+</div>
+
+<!-- RELATED PRODUCTS -->
+<div class="container pb-5">
+  <h5 class="section-title mb-3">Sản phẩm <span>liên quan</span></h5>
+  <div class="row g-3" id="relatedGrid"></div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Viết đánh giá</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-600">Đánh giá của bạn</label>
+          <div class="rating-input" id="ratingInput">
+            <input type="radio" name="rating" id="s5" value="5"><label for="s5">★</label>
+            <input type="radio" name="rating" id="s4" value="4"><label for="s4">★</label>
+            <input type="radio" name="rating" id="s3" value="3"><label for="s3">★</label>
+            <input type="radio" name="rating" id="s2" value="2"><label for="s2">★</label>
+            <input type="radio" name="rating" id="s1" value="1"><label for="s1">★</label>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-600">Tiêu đề</label>
+          <input type="text" class="form-control" id="reviewTitle" placeholder="Tóm tắt trải nghiệm...">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-600">Nội dung</label>
+          <textarea class="form-control" id="reviewBody" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-primary" onclick="submitReview()">Gửi đánh giá</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/cart.js"></script>
+<script>
+const MOCK_PRODUCTS = [
+  { id:1, name:'iPhone 15 Pro Max 256GB', price:34990000, oldPrice:37990000, brand:'iPhone', ram:'8GB', storage:'256GB', stock:15, rating:4.8, reviewCount:234, color:'Titan Đen', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-pro-max.png'], description:'iPhone 15 Pro Max là siêu phẩm mới nhất của Apple với chip A17 Pro, camera 48MP Periscope Zoom 5x, màn hình Super Retina XDR 6.7 inch, khung Titan cứng cáp. Đây là chiếc điện thoại đỉnh cao nhất trong dòng iPhone 15.', specs:{CPU:'Apple A17 Pro Hexa-core',RAM:'8GB',Storage:'256GB',Display:'6.7" Super Retina XDR OLED',Camera:'48MP + 12MP + 12MP',Battery:'4422 mAh',OS:'iOS 17',Charging:'MagSafe 15W',SIM:'Dual SIM (Nano + eSIM)',Connectivity:'5G, WiFi 6E, Bluetooth 5.3'}, isNew:true, discount:8 },
+  { id:2, name:'Samsung Galaxy S24 Ultra 512GB', price:31990000, oldPrice:35990000, brand:'Samsung', ram:'12GB', storage:'512GB', stock:8, rating:4.7, reviewCount:189, color:'Titan Đen', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-s24-ultra.png'], description:'Samsung Galaxy S24 Ultra là đỉnh cao của dòng Galaxy S24 với bút S Pen tích hợp, chip Snapdragon 8 Gen 3, camera 200MP đột phá và pin 5000mAh.', specs:{CPU:'Snapdragon 8 Gen 3',RAM:'12GB',Storage:'512GB',Display:'6.8" Dynamic AMOLED 2X',Camera:'200MP + 50MP + 12MP + 10MP',Battery:'5000 mAh',OS:'Android 14',Charging:'45W',SIM:'Dual SIM',Connectivity:'5G, WiFi 7, Bluetooth 5.3'}, discount:11 },
+  { id:3, name:'iPhone 15 128GB', price:22490000, oldPrice:24990000, brand:'iPhone', ram:'6GB', storage:'128GB', stock:20, rating:4.6, reviewCount:312, color:'Hồng', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15.png'], description:'iPhone 15 với thiết kế hoàn toàn mới, cổng USB-C, Dynamic Island, camera 48MP chuyên nghiệp.', specs:{CPU:'Apple A16 Bionic',RAM:'6GB',Storage:'128GB',Display:'6.1" Super Retina XDR',Camera:'48MP + 12MP',Battery:'3877 mAh',OS:'iOS 17',Charging:'MagSafe 15W',SIM:'Dual SIM (Nano + eSIM)',Connectivity:'5G, WiFi 6, Bluetooth 5.3'}, discount:10 },
+  { id:4, name:'Xiaomi 14 Ultra 512GB', price:29990000, oldPrice:32990000, brand:'Xiaomi', ram:'16GB', storage:'512GB', stock:5, rating:4.5, reviewCount:87, color:'Đen', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/x/i/xiaomi-14-ultra.png'], description:'Xiaomi 14 Ultra hợp tác cùng Leica, camera Summilux 1" đột phá, chip Snapdragon 8 Gen 3.', specs:{CPU:'Snapdragon 8 Gen 3',RAM:'16GB',Storage:'512GB',Display:'6.73" AMOLED 2K',Camera:'50MP Leica + 50MP + 50MP + 50MP',Battery:'5000 mAh',OS:'Android 14',Charging:'90W',SIM:'Dual SIM',Connectivity:'5G, WiFi 7, Bluetooth 5.4'}, discount:9 },
+  { id:5, name:'Samsung Galaxy A55 5G 256GB', price:11490000, oldPrice:12990000, brand:'Samsung', ram:'8GB', storage:'256GB', stock:30, rating:4.4, reviewCount:156, color:'Xanh', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-a55.png'], description:'Samsung Galaxy A55 5G với thiết kế cao cấp, camera 50MP OIS, màn hình AMOLED sắc nét.', specs:{CPU:'Exynos 1480',RAM:'8GB',Storage:'256GB',Display:'6.6" Super AMOLED FHD+',Camera:'50MP + 12MP + 5MP',Battery:'5000 mAh',OS:'Android 14',Charging:'25W',SIM:'Dual SIM',Connectivity:'5G, WiFi 6, Bluetooth 5.3'}, discount:12 },
+];
+
+const MOCK_REVIEWS = [
+  { id:1, userId:1, userName:'Nguyễn Văn An', rating:5, title:'Sản phẩm tuyệt vời!', body:'Máy đẹp, camera chụp ảnh rất sắc nét. Giao hàng nhanh, đóng gói cẩn thận. Rất hài lòng với lần mua này!', date:'2024-01-15', productId:1 },
+  { id:2, userId:2, userName:'Trần Thị Bình', rating:4, title:'Pin tốt, màn hình đẹp', body:'Dùng được 1 tuần, pin dùng cả ngày không lo hết. Màn hình Super Retina rất đẹp khi xem phim. Chỉ tiếc giá hơi cao.', date:'2024-01-20', productId:1 },
+  { id:3, userId:3, userName:'Lê Minh Cường', rating:5, title:'Đáng tiền từng đồng', body:'Camera Periscope zoom 5x cực kỳ ấn tượng. Chụp ban đêm cũng rất tốt. Hiệu năng chip A17 Pro mượt mà.', date:'2024-02-01', productId:1 },
+];
+
+let product = null;
+let currentImg = 0;
+const wishlist = new Set(JSON.parse(localStorage.getItem('wishlist')||'[]'));
+
+function getProductId() {
+  return +new URLSearchParams(window.location.search).get('id');
+}
+
+function renderNavAuth() {
+  const u = Auth.user();
+  const el = document.getElementById('navAuth');
+  if (u) el.innerHTML = `<div class="dropdown"><a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i></a><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="profile.html">Tài khoản</a></li><li><a class="dropdown-item" href="orders.html">Đơn hàng</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item" href="#" onclick="Auth.logout()">Đăng xuất</a></li></ul></div>`;
+  else el.innerHTML = `<a href="login.html" class="btn btn-outline-light btn-sm">Đăng nhập</a>`;
+}
+
+function renderProduct() {
+  const id = getProductId();
+  product = MOCK_PRODUCTS.find(p=>p.id===id) || MOCK_PRODUCTS[0];
+  document.title = product.name + ' - PhoneStore';
+  document.getElementById('bcBrand').textContent = product.brand;
+  document.getElementById('bcName').textContent = product.name;
+
+  const discount = product.discount ? Math.round((1 - product.price/product.oldPrice)*100) : 0;
+  const liked = wishlist.has(product.id);
+
+  document.getElementById('productContent').innerHTML = `
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="product-gallery">
+          <img src="${product.images[0]}" class="product-detail-img mb-3" id="mainImg" alt="${product.name}" onerror="this.src='../images/no-image.svg'">
+          <div class="d-flex gap-2 flex-wrap">
+            ${product.images.map((img,i)=>`<img src="${img}" class="thumb-img ${i===0?'active':''}" onclick="changeImg(${i},'${img}')" alt="thumb" onerror="this.src='../images/no-image.svg'">`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="d-flex align-items-start gap-2 mb-1">
+          <span class="badge bg-primary">${product.brand}</span>
+          ${product.isNew ? '<span class="badge bg-success">Mới ra mắt</span>' : ''}
+          ${product.stock < 5 ? '<span class="badge bg-warning text-dark">Sắp hết hàng</span>' : ''}
+        </div>
+        <h1 class="fs-4 fw-800 mb-2">${product.name}</h1>
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="stars">${Utils.stars(product.rating)}</div>
+          <span class="fw-600">${product.rating}</span>
+          <span class="text-muted">(${product.reviewCount} đánh giá)</span>
+          <span class="text-muted">|</span>
+          <span class="text-muted">Đã bán ${product.reviewCount * 3}</span>
+        </div>
+
+        <div class="bg-light rounded-3 p-3 mb-3">
+          <div class="product-price fs-2 fw-800">${Utils.fmt(product.price)}</div>
+          ${product.oldPrice ? `<div class="d-flex align-items-center gap-2"><del class="text-muted">${Utils.fmt(product.oldPrice)}</del><span class="badge bg-danger">-${discount}%</span><span class="text-success fw-600 small">Tiết kiệm ${Utils.fmt(product.oldPrice-product.price)}</span></div>` : ''}
+        </div>
+
+        <div class="mb-3 d-flex flex-wrap gap-2">
+          <span class="text-muted small"><i class="bi bi-memory me-1"></i><b>RAM:</b> ${product.ram}</span>
+          <span class="text-muted small"><i class="bi bi-hdd me-1"></i><b>Bộ nhớ:</b> ${product.storage}</span>
+          <span class="text-muted small"><i class="bi bi-palette me-1"></i><b>Màu:</b> ${product.color}</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-600 small">SỐ LƯỢNG</label>
+          <div class="d-flex align-items-center gap-3">
+            <div class="qty-ctrl">
+              <button onclick="changeQty(-1)">−</button>
+              <input type="number" id="qtyInput" value="1" min="1" max="${product.stock}">
+              <button onclick="changeQty(1)">+</button>
+            </div>
+            <span class="text-muted small"><i class="bi bi-box-seam me-1"></i>Còn ${product.stock} sản phẩm</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap mb-4">
+          <button class="btn btn-danger px-4 py-2 fw-600" onclick="buyNow()" ${product.stock===0?'disabled':''}>
+            <i class="bi bi-lightning-fill me-2"></i>Mua ngay
+          </button>
+          <button class="btn btn-primary px-4 py-2 fw-600" onclick="addCart()" ${product.stock===0?'disabled':''}>
+            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+          </button>
+          <button class="btn ${liked?'btn-danger':'btn-outline-danger'} px-3 py-2" id="wishBtn" onclick="toggleWishlist()">
+            <i class="bi ${liked?'bi-heart-fill':'bi-heart'}"></i>
+          </button>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6 col-md-3"><div class="text-center p-2 border rounded-3"><i class="bi bi-shield-check text-success fs-5"></i><div class="small mt-1">Bảo hành<br><b>12 tháng</b></div></div></div>
+          <div class="col-6 col-md-3"><div class="text-center p-2 border rounded-3"><i class="bi bi-truck text-primary fs-5"></i><div class="small mt-1">Giao hàng<br><b>24 giờ</b></div></div></div>
+          <div class="col-6 col-md-3"><div class="text-center p-2 border rounded-3"><i class="bi bi-arrow-repeat text-warning fs-5"></i><div class="small mt-1">Đổi trả<br><b>30 ngày</b></div></div></div>
+          <div class="col-6 col-md-3"><div class="text-center p-2 border rounded-3"><i class="bi bi-credit-card text-info fs-5"></i><div class="small mt-1">Thanh toán<br><b>An toàn</b></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="mt-4">
+      <ul class="nav nav-tabs" id="detailTabs">
+        <li class="nav-item"><a class="nav-link active fw-600" data-bs-toggle="tab" href="#tabDesc">Mô tả</a></li>
+        <li class="nav-item"><a class="nav-link fw-600" data-bs-toggle="tab" href="#tabSpecs">Thông số kỹ thuật</a></li>
+        <li class="nav-item"><a class="nav-link fw-600" data-bs-toggle="tab" href="#tabReviews">Đánh giá (${product.reviewCount})</a></li>
+      </ul>
+      <div class="tab-content bg-white border border-top-0 rounded-bottom p-4">
+        <div class="tab-pane fade show active" id="tabDesc">
+          <p class="mb-0" style="line-height:1.8">${product.description}</p>
+        </div>
+        <div class="tab-pane fade" id="tabSpecs">
+          <table class="table spec-table table-bordered">
+            <tbody>
+              ${Object.entries(product.specs).map(([k,v])=>`<tr><td class="fw-600 text-muted w-35">${k}</td><td>${v}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="tab-pane fade" id="tabReviews">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="text-center"><div style="font-size:3rem;font-weight:800;color:#ffc107">${product.rating}</div><div class="stars">${Utils.stars(product.rating)}</div><div class="text-muted small">${product.reviewCount} đánh giá</div></div>
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal"><i class="bi bi-pencil-fill me-2"></i>Viết đánh giá</button>
+          </div>
+          <div id="reviewsList">${renderReviews()}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderReviews() {
+  const reviews = MOCK_REVIEWS.filter(r=>r.productId === (product?.id||1));
+  if (!reviews.length) return `<div class="text-center py-4 text-muted"><i class="bi bi-chat-dots fs-2"></i><p class="mt-2">Chưa có đánh giá nào</p></div>`;
+  return reviews.map(r=>`
+    <div class="review-item">
+      <div class="d-flex gap-3">
+        <div class="reviewer-avatar">${r.userName[0]}</div>
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between">
+            <div><span class="fw-700">${r.userName}</span> <span class="text-muted small ms-2">${Utils.timeAgo(r.date)}</span></div>
+            <div class="stars">${Utils.stars(r.rating)}</div>
+          </div>
+          <div class="fw-600 mt-1">${r.title}</div>
+          <div class="text-muted small mt-1">${r.body}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRelated() {
+  const MOCK_PRODUCTS_ALL = [
+    { id:1, name:'iPhone 15 Pro Max 256GB', price:34990000, brand:'iPhone', rating:4.8, reviewCount:234, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-pro-max.png'], discount:8 },
+    { id:3, name:'iPhone 15 128GB', price:22490000, brand:'iPhone', rating:4.6, reviewCount:312, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15.png'], discount:10 },
+    { id:2, name:'Samsung Galaxy S24 Ultra', price:31990000, brand:'Samsung', rating:4.7, reviewCount:189, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-s24-ultra.png'], discount:11 },
+    { id:5, name:'Samsung Galaxy A55 5G', price:11490000, brand:'Samsung', rating:4.4, reviewCount:156, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-a55.png'] },
+  ];
+  const related = MOCK_PRODUCTS_ALL.filter(p=>p.id!==product.id).slice(0,4);
+  document.getElementById('relatedGrid').innerHTML = related.map(p=>`
+    <div class="col-6 col-md-3">
+      <div class="product-card h-100">
+        ${p.discount?`<span class="discount-badge">-${p.discount}%</span>`:''}
+        <a href="product-detail.html?id=${p.id}"><img src="${p.images[0]}" class="card-img-top" style="height:160px;object-fit:contain;padding:12px;background:#fafafa" alt="${p.name}" onerror="this.src='../images/no-image.svg'"></a>
+        <div class="card-body p-3">
+          <a href="product-detail.html?id=${p.id}" class="text-decoration-none"><div class="product-name small">${p.name}</div></a>
+          <div class="product-price mt-1">${Utils.fmt(p.price)}</div>
+          <button class="btn btn-sm btn-primary w-100 mt-2" onclick="Cart.add({id:${p.id},name:'${p.name}',price:${p.price},images:['${p.images[0]}'],stock:10})"><i class="bi bi-cart-plus me-1"></i>Thêm giỏ</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function changeImg(idx, src) {
+  currentImg = idx;
+  document.getElementById('mainImg').src = src;
+  document.querySelectorAll('.thumb-img').forEach((t,i)=>t.classList.toggle('active',i===idx));
+}
+
+function changeQty(delta) {
+  const inp = document.getElementById('qtyInput');
+  const newVal = Math.max(1, Math.min(product.stock, +inp.value + delta));
+  inp.value = newVal;
+}
+
+function addCart() {
+  const qty = +document.getElementById('qtyInput').value;
+  Cart.add(product, qty);
+}
+
+function buyNow() {
+  const qty = +document.getElementById('qtyInput').value;
+  Cart.add(product, qty);
+  window.location.href = 'cart.html';
+}
+
+function toggleWishlist() {
+  const btn = document.getElementById('wishBtn');
+  if (wishlist.has(product.id)) {
+    wishlist.delete(product.id);
+    btn.className = 'btn btn-outline-danger px-3 py-2';
+    btn.innerHTML = '<i class="bi bi-heart"></i>';
+    Utils.toast('Đã xóa khỏi yêu thích','info');
+  } else {
+    wishlist.add(product.id);
+    btn.className = 'btn btn-danger px-3 py-2';
+    btn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+    Utils.toast('Đã thêm vào yêu thích ❤️');
+  }
+  localStorage.setItem('wishlist', JSON.stringify([...wishlist]));
+}
+
+function submitReview() {
+  const rating = document.querySelector('input[name="rating"]:checked')?.value;
+  const title = document.getElementById('reviewTitle').value.trim();
+  const body = document.getElementById('reviewBody').value.trim();
+  if (!rating) { Utils.toast('Vui lòng chọn số sao','error'); return; }
+  if (!body) { Utils.toast('Vui lòng nhập nội dung','error'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+  Utils.toast('Cảm ơn bạn đã đánh giá!');
+}
+
+renderNavAuth();
+renderProduct();
+renderRelated();
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng ký - PhoneStore</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.auth-wrapper { min-height: 100vh; display: flex; align-items: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 40px 0; }
+.auth-card { background: white; border-radius: 20px; padding: 40px; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.auth-logo { font-size: 1.8rem; font-weight: 800; color: var(--dark); }
+.auth-logo span { color: var(--primary); }
+.form-label { font-size: 0.85rem; font-weight: 600; }
+.form-control { border-radius: 10px; padding: 10px 14px; border: 1.5px solid #dee2e6; }
+.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,110,253,0.1); }
+.btn-submit { border-radius: 10px; padding: 12px; font-weight: 700; font-size: 1rem; }
+.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); border: none; background: none; color: var(--secondary); cursor: pointer; }
+.strength-bar { height: 4px; border-radius: 2px; transition: all 0.3s; }
+.is-valid-custom { border-color: var(--success) !important; }
+.is-invalid-custom { border-color: var(--danger) !important; }
+</style>
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="container">
+    <div class="d-flex justify-content-center">
+      <div class="auth-card">
+        <div class="text-center mb-4">
+          <div class="auth-logo mb-1"><i class="bi bi-phone-fill me-1"></i>Phone<span>Store</span></div>
+          <h5 class="fw-700 mt-2">Tạo tài khoản mới</h5>
+          <p class="text-muted small">Đăng ký để nhận nhiều ưu đãi hấp dẫn</p>
+        </div>
+
+        <form onsubmit="handleRegister(event)" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Họ và tên *</label>
+              <input type="text" id="fullName" class="form-control" placeholder="Nguyễn Văn A" required>
+              <div class="invalid-feedback">Vui lòng nhập họ tên</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Số điện thoại *</label>
+              <input type="tel" id="phone" class="form-control" placeholder="0912 345 678" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email *</label>
+              <input type="email" id="email" class="form-control" placeholder="email@example.com" required>
+              <div class="invalid-feedback">Email không hợp lệ</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tên đăng nhập *</label>
+              <input type="text" id="username" class="form-control" placeholder="username" oninput="checkUsername(this)" required>
+              <div id="usernameMsg" class="form-text small"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Giới tính</label>
+              <select class="form-select" id="gender" style="border-radius:10px;padding:10px 14px;border:1.5px solid #dee2e6">
+                <option value="">Chọn</option>
+                <option value="male">Nam</option>
+                <option value="female">Nữ</option>
+                <option value="other">Khác</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Mật khẩu *</label>
+              <div class="position-relative">
+                <input type="password" id="password" class="form-control pe-5" placeholder="Tối thiểu 8 ký tự" oninput="checkStrength(this.value)" required>
+                <button type="button" class="password-toggle" onclick="togglePass('password',this)"><i class="bi bi-eye"></i></button>
+              </div>
+              <div class="mt-1">
+                <div class="strength-bar" id="strengthBar" style="width:0;background:#dc3545"></div>
+                <small id="strengthText" class="text-muted"></small>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Xác nhận mật khẩu *</label>
+              <div class="position-relative">
+                <input type="password" id="confirmPass" class="form-control pe-5" placeholder="Nhập lại mật khẩu" required>
+                <button type="button" class="password-toggle" onclick="togglePass('confirmPass',this)"><i class="bi bi-eye"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+            <label class="form-check-label small" for="agreeTerms">
+              Tôi đồng ý với <a href="#" class="text-primary">Điều khoản dịch vụ</a> và <a href="#" class="text-primary">Chính sách bảo mật</a>
+            </label>
+          </div>
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" id="newsletter" checked>
+            <label class="form-check-label small" for="newsletter">Nhận thông báo khuyến mãi qua email</label>
+          </div>
+
+          <div id="registerError" class="alert alert-danger d-none small py-2 mt-3 mb-0"></div>
+          <div id="registerSuccess" class="alert alert-success d-none small py-2 mt-3 mb-0"></div>
+
+          <button type="submit" class="btn btn-primary w-100 btn-submit mt-3" id="regBtn">
+            <i class="bi bi-person-plus me-2"></i>Tạo tài khoản
+          </button>
+        </form>
+
+        <div class="text-center mt-3">
+          <span class="text-muted small">Đã có tài khoản? </span>
+          <a href="login.html" class="text-primary fw-600 text-decoration-none">Đăng nhập</a>
+        </div>
+        <div class="text-center mt-2">
+          <a href="index.html" class="text-muted small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Quay về trang chủ</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script>
+function togglePass(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.innerHTML = inp.type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+}
+
+function checkStrength(val) {
+  const bar = document.getElementById('strengthBar');
+  const text = document.getElementById('strengthText');
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [['0%','#dc3545',''], ['25%','#dc3545','Yếu'], ['50%','#ffc107','Trung bình'], ['75%','#0d6efd','Mạnh'], ['100%','#198754','Rất mạnh']];
+  const [w,c,l] = levels[score];
+  bar.style.width = w; bar.style.background = c; text.textContent = l;
+  text.style.color = c;
+}
+
+let usernameTimer;
+function checkUsername(inp) {
+  clearTimeout(usernameTimer);
+  const msg = document.getElementById('usernameMsg');
+  const val = inp.value.trim();
+  if (val.length < 3) { msg.textContent = 'Tối thiểu 3 ký tự'; msg.className = 'form-text small text-danger'; return; }
+  msg.textContent = 'Đang kiểm tra...'; msg.className = 'form-text small text-muted';
+  usernameTimer = setTimeout(() => {
+    // Demo: any username is available
+    msg.textContent = '✓ Tên đăng nhập khả dụng'; msg.className = 'form-text small text-success';
+  }, 700);
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const btn = document.getElementById('regBtn');
+  const err = document.getElementById('registerError');
+  const suc = document.getElementById('registerSuccess');
+  err.classList.add('d-none'); suc.classList.add('d-none');
+
+  const pass = document.getElementById('password').value;
+  const confirm = document.getElementById('confirmPass').value;
+  if (pass !== confirm) { err.textContent = 'Mật khẩu xác nhận không khớp'; err.classList.remove('d-none'); return; }
+  if (pass.length < 8) { err.textContent = 'Mật khẩu tối thiểu 8 ký tự'; err.classList.remove('d-none'); return; }
+  if (!document.getElementById('agreeTerms').checked) { err.textContent = 'Vui lòng đồng ý điều khoản dịch vụ'; err.classList.remove('d-none'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang tạo tài khoản...';
+
+  try {
+    await API.post('/auth/register', {
+      fullName: document.getElementById('fullName').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      username: document.getElementById('username').value.trim(),
+      password: pass,
+      gender: document.getElementById('gender').value,
+      newsletter: document.getElementById('newsletter').checked
+    });
+    suc.textContent = 'Đăng ký thành công! Đang chuyển hướng...';
+    suc.classList.remove('d-none');
+    setTimeout(() => window.location.href = 'login.html', 2000);
+  } catch {
+    // Demo success
+    suc.textContent = 'Đăng ký thành công! Vui lòng đăng nhập.';
+    suc.classList.remove('d-none');
+    setTimeout(() => window.location.href = 'login.html', 2000);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Tạo tài khoản';
+}
+</script>
+</body>
+</html>

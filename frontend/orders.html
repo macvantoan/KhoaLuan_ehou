@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đơn hàng của tôi - PhoneStore</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><i class="bi bi-phone-fill"></i> Phone<span>Store</span></a>
+    <div class="ms-auto d-flex gap-2">
+      <a href="cart.html" class="nav-link position-relative"><i class="bi bi-cart3 fs-5"></i><span class="badge bg-danger rounded-pill position-absolute top-0 end-0 cart-badge" style="display:none">0</span></a>
+      <div id="navAuth"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <div class="row g-4">
+    <!-- SIDEBAR -->
+    <div class="col-md-3">
+      <div class="bg-white rounded-14 shadow-sm overflow-hidden" style="border-radius:14px">
+        <div class="p-3 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <div class="reviewer-avatar" id="avatarInitial">U</div>
+            <div><div class="fw-700 small" id="userName">Khách hàng</div><div class="text-muted small" id="userEmail">-</div></div>
+          </div>
+        </div>
+        <div class="p-2">
+          <a href="profile.html" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded text-muted small"><i class="bi bi-person"></i>Tài khoản của tôi</a>
+          <a href="orders.html" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded fw-600 small text-primary"><i class="bi bi-bag"></i>Đơn hàng</a>
+          <a href="wishlist.html" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded text-muted small"><i class="bi bi-heart"></i>Yêu thích</a>
+          <a href="#" onclick="Auth.logout()" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded text-muted small"><i class="bi bi-box-arrow-right"></i>Đăng xuất</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="col-md-9">
+      <h5 class="fw-800 mb-3"><i class="bi bi-bag me-2 text-primary"></i>Đơn hàng của tôi</h5>
+
+      <!-- STATUS FILTER -->
+      <div class="d-flex gap-2 flex-wrap mb-3">
+        <button class="btn btn-primary btn-sm" onclick="filterStatus(null,this)">Tất cả</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="filterStatus('PENDING',this)">Chờ xác nhận</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="filterStatus('CONFIRMED',this)">Đã xác nhận</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="filterStatus('SHIPPING',this)">Đang giao</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="filterStatus('DELIVERED',this)">Đã giao</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="filterStatus('CANCELLED',this)">Đã hủy</button>
+      </div>
+
+      <div id="ordersList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Chi tiết đơn hàng</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="orderModalBody"></div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/cart.js"></script>
+<script>
+const MOCK_ORDERS = [
+  { id:'PS24010001', date:'2024-01-15 10:30', status:'DELIVERED', items:[{name:'iPhone 15 Pro Max 256GB',qty:1,price:34990000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-pro-max.png'}], total:34990000, address:'123 Lê Lợi, Q.1, TP.HCM', payment:'COD', shipping:'Giao hàng tiêu chuẩn', note:'' },
+  { id:'PS24020015', date:'2024-02-20 14:15', status:'SHIPPING', items:[{name:'Samsung Galaxy A55 5G 256GB',qty:1,price:11490000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-a55.png'},{name:'Ốp lưng Samsung A55',qty:2,price:150000,img:''}], total:11790000, address:'456 Nguyễn Huệ, Q.1, TP.HCM', payment:'BANKING', shipping:'Giao hàng nhanh', note:'Giao giờ hành chính' },
+  { id:'PS24030022', date:'2024-03-05 09:00', status:'PENDING', items:[{name:'Xiaomi Redmi Note 13 Pro 256GB',qty:1,price:8490000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/r/e/redmi-note-13-pro.png'}], total:8490000, address:'789 Hai Bà Trưng, Q.3, TP.HCM', payment:'MOMO', shipping:'Giao hàng tiêu chuẩn', note:'' },
+  { id:'PS24010005', date:'2024-01-08 16:00', status:'CANCELLED', items:[{name:'iPhone SE 3 64GB',qty:1,price:12490000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-se-3.png'}], total:12490000, address:'321 Đinh Tiên Hoàng, Q.Bình Thạnh, TP.HCM', payment:'COD', shipping:'Giao hàng tiêu chuẩn', note:'' },
+];
+
+let statusFilter = null;
+
+function filterStatus(status, btn) {
+  statusFilter = status;
+  document.querySelectorAll('.btn-sm').forEach(b=>{ b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary'); });
+  btn.classList.add('btn-primary'); btn.classList.remove('btn-outline-secondary');
+  renderOrders();
+}
+
+function renderOrders() {
+  const u = Auth.user();
+  if (u) {
+    document.getElementById('userName').textContent = u.fullName || u.username;
+    document.getElementById('userEmail').textContent = u.email || '';
+    document.getElementById('avatarInitial').textContent = (u.fullName||u.username||'U')[0].toUpperCase();
+  }
+
+  let orders = statusFilter ? MOCK_ORDERS.filter(o=>o.status===statusFilter) : MOCK_ORDERS;
+  const el = document.getElementById('ordersList');
+
+  if (!orders.length) {
+    el.innerHTML = `<div class="empty-state"><i class="bi bi-bag-x fs-1"></i><h5 class="mt-3">Không có đơn hàng</h5></div>`;
+    return;
+  }
+
+  el.innerHTML = orders.map(o => {
+    const [label, cls] = Utils.statusLabel(o.status);
+    const trackSteps = ['PENDING','CONFIRMED','SHIPPING','DELIVERED'];
+    const trackIdx = trackSteps.indexOf(o.status);
+
+    return `<div class="bg-white rounded-3 p-4 mb-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <span class="fw-700 text-primary">#${o.id}</span>
+          <span class="text-muted small ms-2">${new Date(o.date).toLocaleDateString('vi-VN',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <span class="${cls}">${label}</span>
+      </div>
+
+      ${o.status !== 'CANCELLED' ? `
+      <div class="d-flex align-items-center gap-0 mb-3 pb-3 border-bottom">
+        ${trackSteps.map((s,i) => {
+          const [sl] = Utils.statusLabel(s);
+          const done = i <= trackIdx;
+          const active = i === trackIdx;
+          return `<div class="text-center flex-fill position-relative">
+            <div class="mx-auto mb-1" style="width:24px;height:24px;border-radius:50%;background:${done?'#198754':'#dee2e6'};display:flex;align-items:center;justify-content:center">
+              <i class="bi ${done?'bi-check':'bi-circle'} text-white small"></i>
+            </div>
+            <div class="small ${active?'fw-700 text-success':'text-muted'}" style="font-size:.72rem">${sl}</div>
+            ${i < trackSteps.length-1 ? `<div style="position:absolute;top:12px;left:60%;width:80%;height:2px;background:${i < trackIdx?'#198754':'#dee2e6'}"></div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+
+      ${o.items.map(item => `
+        <div class="d-flex gap-3 align-items-center mb-2">
+          <img src="${item.img||'images/no-image.svg'}" style="width:60px;height:60px;object-fit:contain;background:#f8f9fa;border-radius:8px;padding:4px" onerror="this.src='images/no-image.svg'">
+          <div class="flex-grow-1"><div class="fw-600 small">${item.name}</div><div class="text-muted small">SL: ${item.qty}</div></div>
+          <div class="fw-700 text-danger small">${Utils.fmt(item.price * item.qty)}</div>
+        </div>
+      `).join('')}
+
+      <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+        <div class="fw-700">Tổng: <span class="text-danger fs-6">${Utils.fmt(o.total)}</span></div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" onclick="viewDetail('${o.id}')"><i class="bi bi-eye me-1"></i>Chi tiết</button>
+          ${o.status==='DELIVERED'?`<button class="btn btn-sm btn-outline-warning" onclick="Utils.toast('Chức năng đang phát triển','info')"><i class="bi bi-arrow-repeat me-1"></i>Mua lại</button>`:''}
+          ${o.status==='PENDING'?`<button class="btn btn-sm btn-outline-danger" onclick="cancelOrder('${o.id}')"><i class="bi bi-x-circle me-1"></i>Hủy đơn</button>`:''}
+          ${o.status==='DELIVERED'?`<button class="btn btn-sm btn-outline-success" onclick="Utils.toast('Cảm ơn bạn đã đánh giá!')"><i class="bi bi-star me-1"></i>Đánh giá</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewDetail(id) {
+  const o = MOCK_ORDERS.find(x=>x.id===id);
+  if (!o) return;
+  const [label, cls] = Utils.statusLabel(o.status);
+  const payMap = { COD:'Thanh toán khi nhận hàng', BANKING:'Chuyển khoản ngân hàng', MOMO:'Ví MoMo', VNPAY:'Thẻ tín dụng' };
+
+  document.getElementById('orderModalBody').innerHTML = `
+    <div class="row g-3">
+      <div class="col-md-6"><h6 class="fw-700 mb-2">Thông tin đơn hàng</h6>
+        <p class="small mb-1"><span class="text-muted">Mã đơn:</span> <b class="text-primary">#${o.id}</b></p>
+        <p class="small mb-1"><span class="text-muted">Ngày đặt:</span> ${new Date(o.date).toLocaleString('vi-VN')}</p>
+        <p class="small mb-1"><span class="text-muted">Trạng thái:</span> <span class="${cls}">${label}</span></p>
+        <p class="small mb-1"><span class="text-muted">Vận chuyển:</span> ${o.shipping}</p>
+        <p class="small mb-0"><span class="text-muted">Thanh toán:</span> ${payMap[o.payment]||o.payment}</p>
+      </div>
+      <div class="col-md-6"><h6 class="fw-700 mb-2">Địa chỉ giao hàng</h6>
+        <p class="small">${o.address}</p>
+        ${o.note?`<p class="small text-muted"><i class="bi bi-sticky me-1"></i>${o.note}</p>`:''}
+      </div>
+      <div class="col-12"><h6 class="fw-700 mb-2">Sản phẩm</h6>
+        ${o.items.map(item=>`
+          <div class="d-flex gap-3 align-items-center mb-2 p-2 bg-light rounded">
+            <img src="${item.img||'images/no-image.svg'}" style="width:50px;height:50px;object-fit:contain;border-radius:6px" onerror="this.src='images/no-image.svg'">
+            <div class="flex-grow-1 small"><div class="fw-600">${item.name}</div><div class="text-muted">x${item.qty} × ${Utils.fmt(item.price)}</div></div>
+            <div class="fw-700 small">${Utils.fmt(item.price*item.qty)}</div>
+          </div>
+        `).join('')}
+        <div class="d-flex justify-content-between fw-700 mt-2 px-2">
+          <span>Tổng cộng</span>
+          <span class="text-danger">${Utils.fmt(o.total)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  new bootstrap.Modal(document.getElementById('orderModal')).show();
+}
+
+function cancelOrder(id) {
+  if (!confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
+  const o = MOCK_ORDERS.find(x=>x.id===id);
+  if (o) o.status = 'CANCELLED';
+  Utils.toast('Đã hủy đơn hàng', 'info');
+  renderOrders();
+}
+
+function renderNavAuth() {
+  const u = Auth.user();
+  const el = document.getElementById('navAuth');
+  if (u) el.innerHTML = `<div class="dropdown"><a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i> ${u.fullName||u.username}</a><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="profile.html">Tài khoản</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item" href="#" onclick="Auth.logout()">Đăng xuất</a></li></ul></div>`;
+  else el.innerHTML = `<a href="login.html" class="btn btn-outline-light btn-sm">Đăng nhập</a>`;
+}
+
+renderNavAuth();
+renderOrders();
+</script>
+</body>
+</html>

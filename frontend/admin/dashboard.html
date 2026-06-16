@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - PhoneStore</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="admin-wrapper">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="bi bi-phone-fill"></i>
+      <span>PhoneStore Admin</span>
+    </div>
+    <nav class="sidebar-menu">
+      <div class="sidebar-label">Tổng quan</div>
+      <a href="dashboard.html" class="sidebar-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a href="analytics.html" class="sidebar-link"><i class="bi bi-graph-up"></i>Thống kê</a>
+
+      <div class="sidebar-label">Quản lý</div>
+      <a href="products.html" class="sidebar-link"><i class="bi bi-phone"></i>Sản phẩm</a>
+      <a href="categories.html" class="sidebar-link"><i class="bi bi-tags"></i>Danh mục</a>
+      <a href="orders.html" class="sidebar-link"><i class="bi bi-bag"></i>Đơn hàng<span class="badge bg-danger ms-auto">3</span></a>
+      <a href="customers.html" class="sidebar-link"><i class="bi bi-people"></i>Khách hàng</a>
+      <a href="reviews.html" class="sidebar-link"><i class="bi bi-star"></i>Đánh giá</a>
+
+      <div class="sidebar-label">Kho hàng</div>
+      <a href="inventory.html" class="sidebar-link"><i class="bi bi-box-seam"></i>Tồn kho<span class="badge bg-warning text-dark ms-auto">5</span></a>
+      <a href="suppliers.html" class="sidebar-link"><i class="bi bi-truck"></i>Nhà cung cấp</a>
+
+      <div class="sidebar-label">Marketing</div>
+      <a href="coupons.html" class="sidebar-link"><i class="bi bi-ticket-perforated"></i>Mã giảm giá</a>
+      <a href="banners.html" class="sidebar-link"><i class="bi bi-image"></i>Banner</a>
+
+      <div class="sidebar-label">Hệ thống</div>
+      <a href="settings.html" class="sidebar-link"><i class="bi bi-gear"></i>Cài đặt</a>
+      <a href="../index.html" class="sidebar-link"><i class="bi bi-house"></i>Xem trang web</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="bi bi-box-arrow-right"></i>Đăng xuất</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="bi bi-list fs-5"></i></button>
+        <div class="page-title">Dashboard</div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="position-relative">
+          <button class="btn btn-sm btn-outline-secondary position-relative"><i class="bi bi-bell fs-5"></i><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem">3</span></button>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" id="adminName">Admin</button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
+            <li><a class="dropdown-item" href="settings.html">Cài đặt</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="Auth.logout()">Đăng xuất</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-body">
+      <!-- WELCOME -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h5 class="fw-800 mb-0">Chào mừng trở lại! 👋</h5>
+          <p class="text-muted small mb-0">Hôm nay là <span id="todayDate"></span></p>
+        </div>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="periodSelect" onchange="updateCharts()">
+            <option value="7">7 ngày qua</option>
+            <option value="30" selected>30 ngày qua</option>
+            <option value="90">90 ngày qua</option>
+          </select>
+          <button class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>Xuất báo cáo</button>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Doanh thu tháng</div>
+                <div class="stat-value mt-1" id="revStat">0</div>
+                <div class="text-success small mt-1"><i class="bi bi-arrow-up"></i> +12.5% so tháng trước</div>
+              </div>
+              <div class="icon-box" style="background:#e7f3ff"><i class="bi bi-currency-dollar text-primary"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Đơn hàng mới</div>
+                <div class="stat-value mt-1" id="orderStat">0</div>
+                <div class="text-success small mt-1"><i class="bi bi-arrow-up"></i> +8.3% so tháng trước</div>
+              </div>
+              <div class="icon-box" style="background:#fff3e0"><i class="bi bi-bag-check text-warning"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Khách hàng mới</div>
+                <div class="stat-value mt-1" id="custStat">0</div>
+                <div class="text-success small mt-1"><i class="bi bi-arrow-up"></i> +15.2% so tháng trước</div>
+              </div>
+              <div class="icon-box" style="background:#e8f5e9"><i class="bi bi-people text-success"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Sản phẩm đã bán</div>
+                <div class="stat-value mt-1" id="soldStat">0</div>
+                <div class="text-danger small mt-1"><i class="bi bi-arrow-down"></i> -2.1% so tháng trước</div>
+              </div>
+              <div class="icon-box" style="background:#fce4ec"><i class="bi bi-phone text-danger"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+          <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="card-title">Biểu đồ doanh thu</div>
+              <div class="d-flex gap-1">
+                <button class="btn btn-xs btn-sm btn-outline-secondary active" onclick="setChartType('line',this)">Đường</button>
+                <button class="btn btn-xs btn-sm btn-outline-secondary" onclick="setChartType('bar',this)">Cột</button>
+              </div>
+            </div>
+            <canvas id="revenueChart" height="80"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="admin-card">
+            <div class="card-title">Doanh thu theo thương hiệu</div>
+            <canvas id="brandChart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="row g-3">
+        <!-- RECENT ORDERS -->
+        <div class="col-lg-7">
+          <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="card-title">Đơn hàng gần đây</div>
+              <a href="orders.html" class="text-primary small text-decoration-none">Xem tất cả</a>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+              <tbody id="recentOrders"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TOP PRODUCTS + LOW STOCK -->
+        <div class="col-lg-5">
+          <div class="admin-card mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="card-title">Sản phẩm bán chạy</div>
+              <a href="products.html" class="text-primary small text-decoration-none">Xem tất cả</a>
+            </div>
+            <div id="topProducts"></div>
+          </div>
+          <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="card-title text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sắp hết hàng</div>
+              <a href="inventory.html" class="text-primary small text-decoration-none">Quản lý kho</a>
+            </div>
+            <div id="lowStockList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/cart.js"></script>
+<script>
+// Auth guard
+const u = Auth.user();
+if (!u || u.role !== 'ADMIN') window.location.href = '../login.html?redirect=admin/dashboard.html';
+document.getElementById('adminName').textContent = u?.fullName || 'Admin';
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// Animate counter
+function animateCount(el, target, prefix = '', suffix = '') {
+  let cur = 0; const step = target / 60;
+  const timer = setInterval(() => {
+    cur += step;
+    if (cur >= target) { el.textContent = prefix + target.toLocaleString('vi-VN') + suffix; clearInterval(timer); }
+    else el.textContent = prefix + Math.floor(cur).toLocaleString('vi-VN') + suffix;
+  }, 16);
+}
+
+animateCount(document.getElementById('revStat'), 2847500000, '', ' ₫');
+animateCount(document.getElementById('orderStat'), 1243);
+animateCount(document.getElementById('custStat'), 387);
+animateCount(document.getElementById('soldStat'), 2891);
+
+// REVENUE CHART
+const months = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+const revData = [1.2,1.8,1.5,2.1,1.9,2.4,2.0,2.3,2.7,2.4,2.8,3.1].map(x=>x*1e9);
+let revenueChart;
+
+function initRevenueChart(type = 'line') {
+  const ctx = document.getElementById('revenueChart');
+  if (revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(ctx, {
+    type, data: {
+      labels: months,
+      datasets: [{
+        label: 'Doanh thu (tỷ đồng)',
+        data: revData.map(x=>x/1e9),
+        borderColor: '#0d6efd', backgroundColor: type==='line'?'rgba(13,110,253,0.1)':'rgba(13,110,253,0.7)',
+        fill: true, tension: 0.4, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+      }]
+    },
+    options: { plugins:{legend:{display:false}}, scales:{ y:{ ticks:{ callback: v => v+'B ₫' } } } }
+  });
+}
+
+function setChartType(type, btn) {
+  document.querySelectorAll('.btn-xs').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  initRevenueChart(type);
+}
+
+// BRAND CHART
+new Chart(document.getElementById('brandChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Khác'],
+    datasets: [{ data: [42, 28, 15, 8, 7], backgroundColor: ['#007aff','#1428a0','#ff6900','#1f5c99','#adb5bd'], borderWidth: 0 }]
+  },
+  options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '65%' }
+});
+
+initRevenueChart('line');
+
+// RECENT ORDERS
+const recentOrdersData = [
+  { id:'PS24030022', customer:'Nguyễn Văn An', product:'iPhone 15 Pro Max', total:34990000, status:'PENDING' },
+  { id:'PS24020015', customer:'Trần Thị Bình', product:'Samsung S24 Ultra', total:31990000, status:'SHIPPING' },
+  { id:'PS24010001', customer:'Lê Minh Cường', product:'Xiaomi 14 Ultra', total:29990000, status:'DELIVERED' },
+  { id:'PS24020009', customer:'Phạm Thu Hà', product:'OPPO Reno 11 Pro', total:13990000, status:'CONFIRMED' },
+  { id:'PS23120045', customer:'Hoàng Văn Đức', product:'iPhone SE 3', total:12490000, status:'CANCELLED' },
+];
+document.getElementById('recentOrders').innerHTML = recentOrdersData.map(o => {
+  const [label,cls] = Utils.statusLabel(o.status);
+  return `<tr>
+    <td><a href="orders.html" class="text-primary fw-600">#${o.id}</a></td>
+    <td class="small">${o.customer}</td>
+    <td class="small text-muted">${o.product}</td>
+    <td class="fw-600 small">${Utils.fmt(o.total)}</td>
+    <td><span class="${cls} small">${label}</span></td>
+  </tr>`;
+}).join('');
+
+// TOP PRODUCTS
+const topProds = [
+  { name:'iPhone 15 Pro Max', sold:234, rev:8191260000 },
+  { name:'Samsung S24 Ultra', sold:189, rev:6046110000 },
+  { name:'Xiaomi Redmi Note 13', sold:203, rev:1723470000 },
+  { name:'Samsung A55 5G', sold:156, rev:1792440000 },
+];
+document.getElementById('topProducts').innerHTML = topProds.map((p,i) => `
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <div class="fw-800 text-muted" style="width:20px;font-size:.8rem">${i+1}</div>
+    <div class="flex-grow-1"><div class="small fw-600">${p.name}</div><div class="text-muted" style="font-size:.72rem">Đã bán: ${p.sold}</div></div>
+    <div class="small fw-700 text-primary">${Utils.fmt(p.rev).replace('₫','')}</div>
+  </div>
+`).join('');
+
+// LOW STOCK
+const lowStock = [
+  { name:'Xiaomi 14 Ultra', stock:5 },
+  { name:'Samsung Z Fold 5', stock:3 },
+  { name:'OPPO Find X7 Ultra', stock:4 },
+  { name:'iPhone 15 Pro Max 1TB', stock:2 },
+];
+document.getElementById('lowStockList').innerHTML = lowStock.map(p => `
+  <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-warning bg-opacity-10 rounded">
+    <div class="small fw-600">${p.name}</div>
+    <span class="badge ${p.stock<=3?'bg-danger':'bg-warning text-dark'}">${p.stock} còn</span>
+  </div>
+`).join('');
+
+function updateCharts() { initRevenueChart(revenueChart?.config?.type || 'line'); }
+</script>
+</body>
+</html>

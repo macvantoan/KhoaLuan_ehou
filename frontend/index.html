@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhoneStore - Điện thoại chính hãng</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><i class="bi bi-phone-fill"></i> Phone<span>Store</span></a>
+    <div class="d-flex align-items-center gap-2 mx-auto">
+      <input type="text" id="searchInput" class="search-input form-control" placeholder="Tìm kiếm điện thoại...">
+      <button class="btn btn-primary search-btn px-3" onclick="searchProducts()"><i class="bi bi-search"></i></button>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="cart.html" class="nav-link position-relative"><i class="bi bi-cart3 fs-5"></i><span class="badge bg-danger rounded-pill position-absolute top-0 end-0 cart-badge" style="display:none">0</span></a>
+      <a href="wishlist.html" class="nav-link"><i class="bi bi-heart fs-5"></i></a>
+      <div id="navAuth"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <div class="fade-in">
+          <div class="badge bg-warning text-dark mb-3 px-3 py-2">🔥 Flash Sale hôm nay</div>
+          <h1 class="hero-title">Điện thoại chính hãng<br>Giá tốt nhất thị trường</h1>
+          <p class="hero-subtitle">Hơn 500+ mẫu điện thoại, bảo hành chính hãng 12-24 tháng</p>
+          <div class="mt-4 d-flex gap-3 flex-wrap">
+            <a href="#products" class="btn btn-light btn-lg px-4 fw-600"><i class="bi bi-lightning-fill text-warning me-2"></i>Mua ngay</a>
+            <a href="#" class="btn btn-outline-light btn-lg px-4">Xem khuyến mãi</a>
+          </div>
+          <div class="mt-4 d-flex gap-4 flex-wrap">
+            <div><div class="fw-700 fs-5">500+</div><div style="opacity:.8;font-size:.85rem">Sản phẩm</div></div>
+            <div><div class="fw-700 fs-5">50K+</div><div style="opacity:.8;font-size:.85rem">Khách hàng</div></div>
+            <div><div class="fw-700 fs-5">99%</div><div style="opacity:.8;font-size:.85rem">Hài lòng</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center d-none d-lg-block">
+        <img src="https://img.freepik.com/free-vector/smartphone-collection-gradient_52683-55987.jpg" style="max-width:380px;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.3))" alt="phones">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORY BAR -->
+<div class="category-bar">
+  <div class="container">
+    <div class="d-flex gap-2" id="categoryBar"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container py-4" id="products">
+  <div class="row g-4">
+
+    <!-- FILTER SIDEBAR -->
+    <div class="col-lg-3">
+      <div class="filter-sidebar sticky-top" style="top:80px">
+        <div class="filter-header"><i class="bi bi-funnel-fill me-2"></i>Bộ lọc</div>
+
+        <div class="filter-section">
+          <h6><i class="bi bi-sort-down me-1"></i>Sắp xếp</h6>
+          <select class="form-select form-select-sm" id="sortSelect" onchange="applyFilters()">
+            <option value="newest">Mới nhất</option>
+            <option value="price_asc">Giá tăng dần</option>
+            <option value="price_desc">Giá giảm dần</option>
+            <option value="best_seller">Bán chạy</option>
+            <option value="rating">Đánh giá cao</option>
+          </select>
+        </div>
+
+        <div class="filter-section">
+          <h6><i class="bi bi-cash me-1"></i>Khoảng giá</h6>
+          <div class="price-range mb-2">
+            <input type="number" id="minPrice" class="form-control form-control-sm" placeholder="Từ" oninput="applyFilters()">
+            <span>—</span>
+            <input type="number" id="maxPrice" class="form-control form-control-sm" placeholder="Đến" oninput="applyFilters()">
+          </div>
+          <div class="d-flex flex-column gap-1">
+            <button class="btn btn-outline-secondary btn-sm text-start" onclick="setPrice(0,3000000)">Dưới 3 triệu</button>
+            <button class="btn btn-outline-secondary btn-sm text-start" onclick="setPrice(3000000,7000000)">3 - 7 triệu</button>
+            <button class="btn btn-outline-secondary btn-sm text-start" onclick="setPrice(7000000,15000000)">7 - 15 triệu</button>
+            <button class="btn btn-outline-secondary btn-sm text-start" onclick="setPrice(15000000,999999999)">Trên 15 triệu</button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h6><i class="bi bi-phone me-1"></i>Thương hiệu</h6>
+          <div id="brandFilters" class="d-flex flex-column gap-1"></div>
+        </div>
+
+        <div class="filter-section">
+          <h6><i class="bi bi-memory me-1"></i>RAM</h6>
+          <div class="d-flex flex-wrap gap-1" id="ramFilters">
+            <button class="btn btn-outline-secondary btn-sm" onclick="setRam(this,'4GB')">4GB</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setRam(this,'6GB')">6GB</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setRam(this,'8GB')">8GB</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setRam(this,'12GB')">12GB</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="setRam(this,'16GB')">16GB</button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="onSaleFilter" onchange="applyFilters()">
+            <label class="form-check-label small fw-600" for="onSaleFilter">Đang khuyến mãi</label>
+          </div>
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" id="inStockFilter" onchange="applyFilters()">
+            <label class="form-check-label small fw-600" for="inStockFilter">Còn hàng</label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()"><i class="bi bi-x-circle me-1"></i>Xóa bộ lọc</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCT GRID -->
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="section-title mb-0"><span id="currentCategory">Tất cả</span> điện thoại</h5>
+          <small class="text-muted" id="productCount"></small>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" id="viewGrid" onclick="setView('grid')"><i class="bi bi-grid"></i></button>
+          <button class="btn btn-sm btn-outline-secondary" id="viewList" onclick="setView('list')"><i class="bi bi-list"></i></button>
+        </div>
+      </div>
+
+      <div id="productGrid" class="row g-3"></div>
+
+      <!-- PAGINATION -->
+      <nav class="mt-4" id="pagination" style="display:none">
+        <ul class="pagination justify-content-center" id="paginationList"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-6 col-md-3">
+        <div class="p-3"><i class="bi bi-shield-check fs-2 text-primary mb-2"></i><h6 class="fw-700">Hàng chính hãng</h6><small class="text-muted">100% sản phẩm chính hãng</small></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3"><i class="bi bi-truck fs-2 text-success mb-2"></i><h6 class="fw-700">Giao hàng nhanh</h6><small class="text-muted">Giao trong 2-24 giờ</small></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3"><i class="bi bi-arrow-repeat fs-2 text-warning mb-2"></i><h6 class="fw-700">Đổi trả 30 ngày</h6><small class="text-muted">Miễn phí đổi trả</small></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3"><i class="bi bi-headset fs-2 text-danger mb-2"></i><h6 class="fw-700">Hỗ trợ 24/7</h6><small class="text-muted">Tư vấn mọi lúc</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-dark text-light py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <h5 class="fw-800"><i class="bi bi-phone-fill me-2"></i>PhoneStore</h5>
+        <p class="text-muted small mt-2">Hệ thống bán lẻ điện thoại chính hãng hàng đầu Việt Nam. Cam kết chất lượng, giá tốt nhất.</p>
+      </div>
+      <div class="col-md-2">
+        <h6 class="fw-700">Sản phẩm</h6>
+        <ul class="list-unstyled small text-muted">
+          <li><a href="#" class="text-muted text-decoration-none">iPhone</a></li>
+          <li><a href="#" class="text-muted text-decoration-none">Samsung</a></li>
+          <li><a href="#" class="text-muted text-decoration-none">Xiaomi</a></li>
+          <li><a href="#" class="text-muted text-decoration-none">OPPO</a></li>
+        </ul>
+      </div>
+      <div class="col-md-3">
+        <h6 class="fw-700">Hỗ trợ</h6>
+        <ul class="list-unstyled small text-muted">
+          <li><a href="#" class="text-muted text-decoration-none">Chính sách bảo hành</a></li>
+          <li><a href="#" class="text-muted text-decoration-none">Chính sách đổi trả</a></li>
+          <li><a href="#" class="text-muted text-decoration-none">Hướng dẫn mua hàng</a></li>
+        </ul>
+      </div>
+      <div class="col-md-3">
+        <h6 class="fw-700">Liên hệ</h6>
+        <p class="small text-muted"><i class="bi bi-geo-alt me-1"></i>123 Lê Lợi, Q.1, TP.HCM</p>
+        <p class="small text-muted"><i class="bi bi-telephone me-1"></i>1800-123-456</p>
+        <p class="small text-muted"><i class="bi bi-envelope me-1"></i>support@phonestore.vn</p>
+      </div>
+    </div>
+    <hr class="border-secondary mt-4">
+    <p class="text-center text-muted small mb-0">© 2025 PhoneStore. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/cart.js"></script>
+<script>
+const MOCK_PRODUCTS = [
+  { id:1, name:'iPhone 15 Pro Max 256GB', price:34990000, oldPrice:37990000, brand:'iPhone', ram:'8GB', stock:15, rating:4.8, reviewCount:234, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-pro-max.png'], isNew:true },
+  { id:2, name:'Samsung Galaxy S24 Ultra 512GB', price:31990000, oldPrice:35990000, brand:'Samsung', ram:'12GB', stock:8, rating:4.7, reviewCount:189, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-s24-ultra.png'], discount:11 },
+  { id:3, name:'iPhone 15 128GB', price:22490000, oldPrice:24990000, brand:'iPhone', ram:'6GB', stock:20, rating:4.6, reviewCount:312, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15.png'], discount:10 },
+  { id:4, name:'Xiaomi 14 Ultra 512GB', price:29990000, oldPrice:32990000, brand:'Xiaomi', ram:'16GB', stock:5, rating:4.5, reviewCount:87, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/x/i/xiaomi-14-ultra.png'], discount:9 },
+  { id:5, name:'Samsung Galaxy A55 5G 256GB', price:11490000, oldPrice:12990000, brand:'Samsung', ram:'8GB', stock:30, rating:4.4, reviewCount:156, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-a55.png'], discount:12 },
+  { id:6, name:'OPPO Reno 11 Pro 256GB', price:13990000, oldPrice:15990000, brand:'OPPO', ram:'12GB', stock:12, rating:4.3, reviewCount:94, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/o/p/oppo-reno11-pro.png'], discount:13 },
+  { id:7, name:'Xiaomi Redmi Note 13 Pro 256GB', price:8490000, oldPrice:9990000, brand:'Xiaomi', ram:'8GB', stock:25, rating:4.5, reviewCount:203, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/r/e/redmi-note-13-pro.png'], discount:15 },
+  { id:8, name:'Vivo V29e 5G 256GB', price:7990000, oldPrice:9490000, brand:'Vivo', ram:'8GB', stock:18, rating:4.2, reviewCount:67, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/v/i/vivo-v29e.png'], discount:16 },
+  { id:9, name:'Realme GT 5 Pro 512GB', price:16990000, oldPrice:18990000, brand:'Realme', ram:'16GB', stock:7, rating:4.4, reviewCount:45, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/r/e/realme-gt5-pro.png'], discount:11 },
+  { id:10, name:'Samsung Galaxy Z Fold 5 512GB', price:49990000, oldPrice:54990000, brand:'Samsung', ram:'12GB', stock:3, rating:4.6, reviewCount:78, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-z-fold5.png'], discount:9 },
+  { id:11, name:'iPhone SE 3 64GB', price:12490000, oldPrice:13990000, brand:'iPhone', ram:'4GB', stock:22, rating:4.1, reviewCount:145, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-se-3.png'], discount:11 },
+  { id:12, name:'OPPO Find X7 Ultra 512GB', price:38990000, oldPrice:42990000, brand:'OPPO', ram:'16GB', stock:4, rating:4.7, reviewCount:56, images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/o/p/oppo-find-x7-ultra.png'], discount:9 },
+];
+
+let filtered = [...MOCK_PRODUCTS];
+let page = 1;
+const PER_PAGE = 8;
+let activeCat = 0, activeRam = null;
+const wishlist = new Set(JSON.parse(localStorage.getItem('wishlist')||'[]'));
+
+function renderNavAuth() {
+  const u = Auth.user();
+  const el = document.getElementById('navAuth');
+  if (u) {
+    el.innerHTML = `<div class="dropdown"><a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i>${u.fullName||u.username}</a><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="profile.html"><i class="bi bi-person me-2"></i>Tài khoản</a></li><li><a class="dropdown-item" href="orders.html"><i class="bi bi-bag me-2"></i>Đơn hàng</a></li>${u.role==='ADMIN'?'<li><hr class="dropdown-divider"></li><li><a class="dropdown-item" href="admin/dashboard.html"><i class="bi bi-gear me-2"></i>Quản trị</a></li>':''}<li><hr class="dropdown-divider"></li><li><a class="dropdown-item" href="#" onclick="Auth.logout()"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li></ul></div>`;
+  } else {
+    el.innerHTML = `<a href="login.html" class="btn btn-outline-light btn-sm me-1">Đăng nhập</a><a href="register.html" class="btn btn-primary btn-sm">Đăng ký</a>`;
+  }
+}
+
+function renderCategories() {
+  const bar = document.getElementById('categoryBar');
+  bar.innerHTML = CATEGORIES.map(c => `<button class="cat-btn ${c.id===activeCat?'active':''}" onclick="selectCat(${c.id},'${c.name}')"><i class="bi ${c.icon}"></i>${c.name}</button>`).join('');
+}
+
+function renderBrandFilters() {
+  const brands = [...new Set(MOCK_PRODUCTS.map(p=>p.brand))];
+  document.getElementById('brandFilters').innerHTML = brands.map(b =>
+    `<div class="form-check"><input class="form-check-input" type="checkbox" id="brand_${b}" onchange="applyFilters()" value="${b}"><label class="form-check-label small" for="brand_${b}">${b}</label></div>`
+  ).join('');
+}
+
+function applyFilters() {
+  const sort = document.getElementById('sortSelect').value;
+  const min = +document.getElementById('minPrice').value || 0;
+  const max = +document.getElementById('maxPrice').value || Infinity;
+  const onSale = document.getElementById('onSaleFilter').checked;
+  const inStock = document.getElementById('inStockFilter').checked;
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const checkedBrands = [...document.querySelectorAll('#brandFilters input:checked')].map(x=>x.value);
+
+  filtered = MOCK_PRODUCTS.filter(p => {
+    if (activeCat !== 0 && CATEGORIES.find(c=>c.id===activeCat)?.name !== p.brand) return false;
+    if (p.price < min || p.price > max) return false;
+    if (onSale && !p.discount) return false;
+    if (inStock && p.stock === 0) return false;
+    if (q && !p.name.toLowerCase().includes(q)) return false;
+    if (checkedBrands.length && !checkedBrands.includes(p.brand)) return false;
+    if (activeRam && p.ram !== activeRam) return false;
+    return true;
+  });
+
+  if (sort === 'price_asc') filtered.sort((a,b)=>a.price-b.price);
+  else if (sort === 'price_desc') filtered.sort((a,b)=>b.price-a.price);
+  else if (sort === 'best_seller') filtered.sort((a,b)=>b.reviewCount-a.reviewCount);
+  else if (sort === 'rating') filtered.sort((a,b)=>b.rating-a.rating);
+
+  page = 1;
+  renderProducts();
+}
+
+function selectCat(id, name) {
+  activeCat = id;
+  document.getElementById('currentCategory').textContent = name;
+  renderCategories();
+  applyFilters();
+}
+
+function setPrice(min, max) {
+  document.getElementById('minPrice').value = min || '';
+  document.getElementById('maxPrice').value = max >= 999999999 ? '' : max;
+  applyFilters();
+}
+
+function setRam(btn, ram) {
+  if (activeRam === ram) { activeRam = null; btn.classList.remove('btn-primary'); btn.classList.add('btn-outline-secondary'); }
+  else { activeRam = ram; document.querySelectorAll('#ramFilters button').forEach(b=>{ b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary'); }); btn.classList.add('btn-primary'); btn.classList.remove('btn-outline-secondary'); }
+  applyFilters();
+}
+
+function clearFilters() {
+  activeCat = 0; activeRam = null;
+  document.getElementById('minPrice').value = '';
+  document.getElementById('maxPrice').value = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('onSaleFilter').checked = false;
+  document.getElementById('inStockFilter').checked = false;
+  document.querySelectorAll('#brandFilters input').forEach(x=>x.checked=false);
+  document.querySelectorAll('#ramFilters button').forEach(b=>{ b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary'); });
+  document.getElementById('currentCategory').textContent = 'Tất cả';
+  renderCategories();
+  applyFilters();
+}
+
+function searchProducts() { applyFilters(); }
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+
+function renderProducts() {
+  const start = (page-1)*PER_PAGE, end = start+PER_PAGE;
+  const paged = filtered.slice(start, end);
+  document.getElementById('productCount').textContent = `${filtered.length} sản phẩm`;
+
+  const grid = document.getElementById('productGrid');
+  if (!paged.length) {
+    grid.innerHTML = `<div class="col-12"><div class="empty-state"><i class="bi bi-search"></i><h5>Không tìm thấy sản phẩm</h5><p class="text-muted">Hãy thử tìm kiếm khác</p></div></div>`;
+    document.getElementById('pagination').style.display = 'none';
+    return;
+  }
+
+  grid.innerHTML = paged.map(p => {
+    const liked = wishlist.has(p.id);
+    const img = p.images?.[0] || 'images/no-image.svg';
+    return `<div class="col-6 col-md-4 col-xl-3 fade-in">
+      <div class="product-card h-100">
+        ${p.discount ? `<span class="discount-badge">-${p.discount}%</span>` : p.isNew ? `<span class="new-badge">Mới</span>` : ''}
+        <button class="wishlist-btn ${liked?'liked':''}" onclick="toggleWishlist(${p.id},this)" title="Yêu thích">
+          <i class="bi ${liked?'bi-heart-fill':'bi-heart'}"></i>
+        </button>
+        <a href="product-detail.html?id=${p.id}" class="text-decoration-none">
+          <img src="${img}" class="card-img-top" alt="${p.name}" onerror="this.src='images/no-image.svg'">
+        </a>
+        <div class="card-body d-flex flex-column">
+          <a href="product-detail.html?id=${p.id}" class="text-decoration-none"><div class="product-name mb-1">${p.name}</div></a>
+          <div class="d-flex align-items-center gap-1 mb-1">
+            <div class="stars">${Utils.stars(p.rating)}</div>
+            <span class="review-count">(${p.reviewCount})</span>
+          </div>
+          <div class="mt-auto">
+            <div class="product-price">${Utils.fmt(p.price)}</div>
+            ${p.oldPrice ? `<div class="product-old-price">${Utils.fmt(p.oldPrice)}</div>` : ''}
+            <div class="d-flex gap-1 mt-2">
+              <button class="btn btn-primary add-cart-btn flex-grow-1 ${p.stock===0?'disabled':''}" onclick="addToCart(${p.id})" ${p.stock===0?'disabled':''}>
+                ${p.stock===0?'Hết hàng':'<i class="bi bi-cart-plus me-1"></i>Giỏ hàng'}
+              </button>
+              <a href="product-detail.html?id=${p.id}" class="btn btn-outline-secondary add-cart-btn"><i class="bi bi-eye"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = Math.ceil(filtered.length/PER_PAGE);
+  const pag = document.getElementById('pagination');
+  if (total <= 1) { pag.style.display = 'none'; return; }
+  pag.style.display = '';
+  const list = document.getElementById('paginationList');
+  let html = `<li class="page-item ${page===1?'disabled':''}"><a class="page-link" onclick="gotoPage(${page-1})">‹</a></li>`;
+  for (let i = 1; i <= total; i++) {
+    if (total > 7 && Math.abs(i-page) > 2 && i !== 1 && i !== total) { if (i === 2 || i === total-1) html += `<li class="page-item disabled"><span class="page-link">…</span></li>`; continue; }
+    html += `<li class="page-item ${i===page?'active':''}"><a class="page-link" onclick="gotoPage(${i})">${i}</a></li>`;
+  }
+  html += `<li class="page-item ${page===total?'disabled':''}"><a class="page-link" onclick="gotoPage(${page+1})">›</a></li>`;
+  list.innerHTML = html;
+}
+
+function gotoPage(p) {
+  const total = Math.ceil(filtered.length/PER_PAGE);
+  if (p < 1 || p > total) return;
+  page = p;
+  renderProducts();
+  document.getElementById('products').scrollIntoView({behavior:'smooth'});
+}
+
+function addToCart(id) {
+  const p = MOCK_PRODUCTS.find(x=>x.id===id);
+  if (p) Cart.add(p);
+}
+
+function toggleWishlist(id, btn) {
+  if (wishlist.has(id)) { wishlist.delete(id); btn.classList.remove('liked'); btn.innerHTML='<i class="bi bi-heart"></i>'; Utils.toast('Đã xóa khỏi yêu thích','info'); }
+  else { wishlist.add(id); btn.classList.add('liked'); btn.innerHTML='<i class="bi bi-heart-fill"></i>'; Utils.toast('Đã thêm vào yêu thích ❤️'); }
+  localStorage.setItem('wishlist', JSON.stringify([...wishlist]));
+}
+
+function setView(type) {
+  const grid = document.getElementById('productGrid');
+  if (type === 'list') grid.className = 'row g-3 row-cols-1';
+  else grid.className = 'row g-3';
+}
+
+// INIT
+renderNavAuth();
+renderCategories();
+renderBrandFilters();
+renderProducts();
+</script>
+</body>
+</html>

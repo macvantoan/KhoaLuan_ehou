@@ -1,0 +1,22 @@
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Maven build output
+backend/target/
+
+# Node modules
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Upload files
+backend/uploads/

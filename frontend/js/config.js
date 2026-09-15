@@ -49,7 +49,7 @@ const Auth = {
     user: () => JSON.parse(localStorage.getItem('user') || 'null'),
     isAdmin: () => { const u = Auth.user(); return u && u.role === 'ADMIN'; },
     isLoggedIn: () => !!Auth.token(),
-    logout: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/frontend/login.html'; }
+    logout: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login.html'; }
 };
 
 const Utils = {

@@ -1,6 +1,7 @@
 package com.phonestore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -44,7 +45,7 @@ public class Product {
     private BigDecimal oldPrice;
 
     @Column(name = "cost_price", precision = 15, scale = 0)
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private BigDecimal costPrice;
 
     @Column(nullable = false)

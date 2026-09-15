@@ -29,6 +29,7 @@ public class ProductController {
         @RequestParam(required = false) BigDecimal maxPrice,
         @RequestParam(required = false) String ram,
         @RequestParam(required = false) String sort,
+        @RequestParam(required = false) String status,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "12") int size
     ) {
@@ -40,8 +41,12 @@ public class ProductController {
             default -> Sort.by("createdAt").descending();
         };
 
+        // Storefront callers omit `status` and only ever see ACTIVE products;
+        // the admin product list passes status=ALL to see every status.
+        Product.Status statusFilter = "ALL".equalsIgnoreCase(status) ? null : Product.Status.ACTIVE;
+
         Pageable pageable = PageRequest.of(page, size, sorting);
-        Page<Product> products = productRepo.search(q, brand, minPrice, maxPrice, ram, Product.Status.ACTIVE, pageable);
+        Page<Product> products = productRepo.search(q, brand, minPrice, maxPrice, ram, statusFilter, pageable);
 
         return ResponseEntity.ok(Map.of(
             "content", products.getContent(),

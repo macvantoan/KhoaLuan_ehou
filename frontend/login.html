@@ -117,23 +117,10 @@ async function handleLogin(e) {
       window.location.href = redirect;
     }
   } catch (err) {
-    // DEMO: allow test login
-    const testUsers = [
-      { username:'admin', password:'admin123', user:{ id:1, username:'admin', fullName:'Quản trị viên', email:'admin@phonestore.vn', role:'ADMIN' }, token:'demo_admin_token' },
-      { username:'user', password:'user123', user:{ id:2, username:'user', fullName:'Nguyễn Văn A', email:'user@phonestore.vn', role:'USER' }, token:'demo_user_token' },
-    ];
-    const uname = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value;
-    const found = testUsers.find(u => (u.username===uname || u.user.email===uname) && u.password===pass);
-    if (found) {
-      localStorage.setItem('token', found.token);
-      localStorage.setItem('user', JSON.stringify(found.user));
-      const redirect = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
-      window.location.href = redirect;
-    } else {
-      errEl.textContent = 'Tên đăng nhập hoặc mật khẩu không đúng';
-      errEl.classList.remove('d-none');
-    }
+    let message = 'Không thể kết nối tới máy chủ. Vui lòng thử lại sau.';
+    try { message = JSON.parse(err.message).message || message; } catch {}
+    errEl.textContent = message;
+    errEl.classList.remove('d-none');
   }
 
   btn.disabled = false;

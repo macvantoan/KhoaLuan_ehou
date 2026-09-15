@@ -1,0 +1,77 @@
+2026-09-13 21:40:58.084185+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.105915+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.108916+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.111915+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.243970+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.345965+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.361963+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.365964+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.368962+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.371971+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.375967+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.378970+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:40:58.382961+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-13 21:59:52.105842+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:19:17.586381+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:26:46.042304+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:26:46.105355+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:26:52.731700+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:26:52.736696+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:31:06.408731+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:31:06.430743+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:34:08.911579+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:34:08.911579+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:34:57.075524+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:36:50.390954+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:36:50.392964+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:36:57.442086+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:36:57.445084+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:39:24.096131+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:39:24.099132+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "IMAGE_URL CHARACTER VARYING(255)": "'https://www.bing.com/images/search?view=detailV2&ccid=1vzVlCma&id=F83C9E6D0A765... (485)"; SQL statement:
+insert into product_images (product_id,image_url) values (?,?) [22001-224]
+2026-09-14 19:40:23.505988+07:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:52:49.471134+07:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:52:49.554694+07:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 19:53:34.880333+07:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]
+2026-09-14 20:37:50.173209+07:00 jdbc[23]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]

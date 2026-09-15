@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tài khoản của tôi - PhoneStore</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><i class="bi bi-phone-fill"></i> Phone<span>Store</span></a>
+    <div class="ms-auto d-flex gap-2">
+      <a href="cart.html" class="nav-link position-relative"><i class="bi bi-cart3 fs-5"></i><span class="badge bg-danger rounded-pill position-absolute top-0 end-0 cart-badge" style="display:none">0</span></a>
+      <div id="navAuth"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <div class="row g-4">
+    <!-- SIDEBAR -->
+    <div class="col-md-3">
+      <div class="bg-white rounded-14 shadow-sm overflow-hidden" style="border-radius:14px">
+        <div class="p-3 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <div class="reviewer-avatar" id="avatarInitial">U</div>
+            <div><div class="fw-700 small" id="userNameSide">Khách hàng</div><div class="text-muted small" id="userEmailSide">-</div></div>
+          </div>
+        </div>
+        <div class="p-2">
+          <a href="profile.html" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded fw-600 small text-primary"><i class="bi bi-person"></i>Tài khoản của tôi</a>
+          <a href="orders.html" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded text-muted small"><i class="bi bi-bag"></i>Đơn hàng</a>
+          <a href="wishlist.html" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded text-muted small"><i class="bi bi-heart"></i>Yêu thích</a>
+          <a href="#" onclick="Auth.logout()" class="sidebar-link text-decoration-none d-flex align-items-center gap-2 p-2 rounded text-muted small"><i class="bi bi-box-arrow-right"></i>Đăng xuất</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="col-md-9">
+      <h5 class="fw-800 mb-3"><i class="bi bi-person me-2 text-primary"></i>Tài khoản của tôi</h5>
+
+      <div class="bg-white rounded-3 p-4 mb-4 shadow-sm">
+        <h6 class="fw-700 mb-3">Thông tin cá nhân</h6>
+        <form id="profileForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small">Họ và tên</label>
+              <input type="text" class="form-control" id="fullName">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Email</label>
+              <input type="email" class="form-control" id="email" disabled>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Số điện thoại</label>
+              <input type="text" class="form-control" id="phone">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Tên đăng nhập</label>
+              <input type="text" class="form-control" id="username" disabled>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Địa chỉ</label>
+              <textarea class="form-control" id="address" rows="2"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-check-lg me-1"></i>Lưu thay đổi</button>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-3 p-4 shadow-sm">
+        <h6 class="fw-700 mb-3">Đổi mật khẩu</h6>
+        <form id="passwordForm">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small">Mật khẩu hiện tại</label>
+              <input type="password" class="form-control" id="currentPassword" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Mật khẩu mới</label>
+              <input type="password" class="form-control" id="newPassword" minlength="8" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Xác nhận mật khẩu mới</label>
+              <input type="password" class="form-control" id="confirmPassword" minlength="8" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-outline-primary mt-3"><i class="bi bi-shield-lock me-1"></i>Đổi mật khẩu</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/cart.js"></script>
+<script>
+if (!Auth.isLoggedIn()) window.location.href = 'login.html';
+
+function renderNavAuth() {
+  const u = Auth.user();
+  const el = document.getElementById('navAuth');
+  if (u) el.innerHTML = `<div class="dropdown"><a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i> ${u.fullName||u.username}</a><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="profile.html">Tài khoản</a></li><li><a class="dropdown-item" href="orders.html">Đơn hàng</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item" href="#" onclick="Auth.logout()">Đăng xuất</a></li></ul></div>`;
+  else el.innerHTML = `<a href="login.html" class="btn btn-outline-light btn-sm">Đăng nhập</a>`;
+}
+
+async function loadProfile() {
+  try {
+    const u = await API.get('/users/profile', true);
+    if (!u) return;
+    document.getElementById('fullName').value = u.fullName || '';
+    document.getElementById('email').value = u.email || '';
+    document.getElementById('phone').value = u.phone || '';
+    document.getElementById('username').value = u.username || '';
+    document.getElementById('address').value = u.address || '';
+    document.getElementById('userNameSide').textContent = u.fullName || u.username;
+    document.getElementById('userEmailSide').textContent = u.email || '';
+    document.getElementById('avatarInitial').textContent = (u.fullName||u.username||'U')[0].toUpperCase();
+  } catch (e) {
+    Utils.toast('Không tải được thông tin tài khoản', 'error');
+  }
+}
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const updated = await API.put('/users/profile', {
+      fullName: document.getElementById('fullName').value,
+      phone: document.getElementById('phone').value,
+      address: document.getElementById('address').value
+    }, true);
+    if (updated) {
+      const u = Auth.user();
+      localStorage.setItem('user', JSON.stringify({ ...u, fullName: updated.fullName }));
+      Utils.toast('Đã cập nhật thông tin tài khoản');
+      renderNavAuth();
+      document.getElementById('userNameSide').textContent = updated.fullName || updated.username;
+    }
+  } catch (e) {
+    Utils.toast('Cập nhật thất bại', 'error');
+  }
+});
+
+document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  if (newPassword !== confirmPassword) {
+    Utils.toast('Mật khẩu xác nhận không khớp', 'error');
+    return;
+  }
+  try {
+    await API.post('/users/change-password', {
+      currentPassword: document.getElementById('currentPassword').value,
+      newPassword
+    }, true);
+    Utils.toast('Đã đổi mật khẩu thành công');
+    document.getElementById('passwordForm').reset();
+  } catch (e) {
+    Utils.toast(e.message || 'Đổi mật khẩu thất bại', 'error');
+  }
+});
+
+renderNavAuth();
+loadProfile();
+</script>
+</body>
+</html>

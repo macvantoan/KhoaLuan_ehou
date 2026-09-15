@@ -17,6 +17,7 @@
     <nav class="sidebar-menu">
       <div class="sidebar-label">Tổng quan</div>
       <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a href="analytics.html" class="sidebar-link"><i class="bi bi-graph-up"></i>Thống kê</a>
       <div class="sidebar-label">Quản lý</div>
       <a href="products.html" class="sidebar-link active"><i class="bi bi-phone"></i>Sản phẩm</a>
       <a href="orders.html" class="sidebar-link"><i class="bi bi-bag"></i>Đơn hàng<span class="badge bg-danger ms-auto">3</span></a>
@@ -226,6 +227,7 @@
                 <select class="form-select" id="fStatus">
                   <option value="active">Đang bán</option>
                   <option value="inactive">Ngừng bán</option>
+                  <option value="out">Hết hàng</option>
                   <option value="preorder">Đặt trước</option>
                 </select>
               </div>
@@ -270,20 +272,35 @@
 <script>
 if (!Auth.isAdmin()) window.location.href = '../login.html';
 
-let products = [
-  { id:1, name:'iPhone 15 Pro Max 256GB', sku:'IPH-15PM-256-BLK', brand:'iPhone', price:34990000, oldPrice:37990000, stock:15, sold:234, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-pro-max.png'], isNew:true, createdAt:'2024-01-01' },
-  { id:2, name:'Samsung Galaxy S24 Ultra 512GB', sku:'SAM-S24U-512', brand:'Samsung', price:31990000, oldPrice:35990000, stock:8, sold:189, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-s24-ultra.png'], createdAt:'2024-01-05' },
-  { id:3, name:'iPhone 15 128GB', sku:'IPH-15-128', brand:'iPhone', price:22490000, oldPrice:24990000, stock:20, sold:312, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15.png'], createdAt:'2024-01-10' },
-  { id:4, name:'Xiaomi 14 Ultra 512GB', sku:'XMI-14U-512', brand:'Xiaomi', price:29990000, oldPrice:32990000, stock:5, sold:87, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/x/i/xiaomi-14-ultra.png'], createdAt:'2024-02-01' },
-  { id:5, name:'Samsung Galaxy A55 5G 256GB', sku:'SAM-A55-256', brand:'Samsung', price:11490000, oldPrice:12990000, stock:30, sold:156, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-a55.png'], createdAt:'2024-02-10' },
-  { id:6, name:'OPPO Reno 11 Pro 256GB', sku:'OPP-R11P-256', brand:'OPPO', price:13990000, oldPrice:15990000, stock:12, sold:94, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/o/p/oppo-reno11-pro.png'], createdAt:'2024-02-15' },
-  { id:7, name:'Xiaomi Redmi Note 13 Pro 256GB', sku:'XMI-RN13P-256', brand:'Xiaomi', price:8490000, oldPrice:9990000, stock:25, sold:203, status:'active', images:['https://cdn2.cellphones.com.vn/x/media/catalog/product/r/e/redmi-note-13-pro.png'], createdAt:'2024-02-20' },
-  { id:8, name:'Vivo V29e 5G 256GB', sku:'VIV-V29E-256', brand:'Vivo', price:7990000, oldPrice:9490000, stock:0, sold:67, status:'out', images:[], createdAt:'2024-03-01' },
-];
+const STATUS_API_TO_UI = { ACTIVE:'active', INACTIVE:'inactive', OUT_OF_STOCK:'out', PREORDER:'preorder' };
+const STATUS_UI_TO_API = { active:'ACTIVE', inactive:'INACTIVE', out:'OUT_OF_STOCK', preorder:'PREORDER' };
 
+function apiErrorMessage(e) {
+  try { const j = JSON.parse(e.message); return j.message || e.message; } catch { return e.message; }
+}
+
+let products = [];
 let editId = null, deleteId = null;
 let page = 1; const PER = 10;
 let selected = new Set();
+
+function mapFromApi(p) {
+  return { ...p, sold: p.soldCount || 0, status: STATUS_API_TO_UI[p.status] || 'active' };
+}
+
+async function loadProducts() {
+  Utils.loading(true);
+  try {
+    const res = await API.get('/products?size=1000&status=ALL');
+    products = (res.content || []).map(mapFromApi);
+  } catch (e) {
+    Utils.toast('Không tải được danh sách sản phẩm: ' + apiErrorMessage(e), 'error');
+    products = [];
+  } finally {
+    Utils.loading(false);
+    renderTable();
+  }
+}
 
 function getFiltered() {
   const q = document.getElementById('searchProd').value.toLowerCase();
@@ -370,20 +387,46 @@ function openModal(id=null) {
   document.getElementById('modalTitle').textContent = id ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới';
   const fields = ['fName','fSku','fBrand','fColor','fDesc','fDescLong','fCpu','fDisplay','fCamera','fBattery','fCharging','fOs','fConnect','fSim','fPrice','fOldPrice','fCostPrice','fStock','fLowStock','fWeight'];
   fields.forEach(f=>{const el=document.getElementById(f); if(el)el.value='';});
+  ['fIsNew','fIsFeatured','fIsHot'].forEach(f=>{document.getElementById(f).checked=false;});
+  document.getElementById('fStatus').value='active';
+  document.getElementById('fRam').selectedIndex=0;
+  document.getElementById('fStorage').selectedIndex=0;
   document.getElementById('imgPreview').innerHTML='';
   document.getElementById('imageInputs').innerHTML=`<div class="input-group mb-2"><input type="url" class="form-control img-url-input" placeholder="https://..." oninput="previewImages()"><button class="btn btn-outline-danger" onclick="this.parentElement.remove();previewImages()"><i class="bi bi-x"></i></button></div>`;
 
   if (id) {
     const p = products.find(x=>x.id===id);
     if (p) {
-      document.getElementById('fName').value=p.name;
+      document.getElementById('fName').value=p.name||'';
       document.getElementById('fSku').value=p.sku||'';
-      document.getElementById('fBrand').value=p.brand;
+      document.getElementById('fBrand').value=p.brand||'';
+      document.getElementById('fColor').value=p.color||'';
+      document.getElementById('fDesc').value=p.description||'';
+      document.getElementById('fDescLong').value=p.descriptionLong||'';
+      document.getElementById('fCpu').value=p.cpu||'';
+      document.getElementById('fDisplay').value=p.display||'';
+      document.getElementById('fCamera').value=p.camera||'';
+      document.getElementById('fBattery').value=p.battery||'';
+      document.getElementById('fCharging').value=p.charging||'';
+      document.getElementById('fOs').value=p.os||'';
+      document.getElementById('fConnect').value=p.connectivity||'';
+      document.getElementById('fSim').value=p.sim||'';
       document.getElementById('fPrice').value=p.price;
       document.getElementById('fOldPrice').value=p.oldPrice||'';
       document.getElementById('fStock').value=p.stock;
+      document.getElementById('fLowStock').value=p.lowStockThreshold ?? 5;
+      document.getElementById('fWeight').value=p.weight||'';
       document.getElementById('fStatus').value=p.status;
-      if(p.images?.[0]) document.querySelector('.img-url-input').value=p.images[0];
+      document.getElementById('fIsNew').checked=!!p.isNew;
+      document.getElementById('fIsFeatured').checked=!!p.isFeatured;
+      document.getElementById('fIsHot').checked=!!p.isHot;
+      if (p.ram) document.getElementById('fRam').value=p.ram;
+      if (p.storage) document.getElementById('fStorage').value=p.storage;
+
+      const imgs = p.images?.length ? p.images : [''];
+      document.getElementById('imageInputs').innerHTML = imgs.map(url =>
+        `<div class="input-group mb-2"><input type="url" class="form-control img-url-input" placeholder="https://..." value="${url}" oninput="previewImages()"><button class="btn btn-outline-danger" onclick="this.parentElement.remove();previewImages()"><i class="bi bi-x"></i></button></div>`
+      ).join('');
       previewImages();
     }
   }
@@ -400,43 +443,88 @@ function deleteProduct(id, name) {
   new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
-function confirmDelete() {
-  products = products.filter(p=>p.id!==deleteId);
-  bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-  Utils.toast('Đã xóa sản phẩm', 'info');
-  renderTable();
+async function confirmDelete() {
+  try {
+    await API.delete(`/products/${deleteId}`, true);
+    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+    Utils.toast('Đã xóa sản phẩm', 'info');
+    await loadProducts();
+  } catch (e) {
+    Utils.toast('Xóa thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
-function deleteSelected() {
+async function deleteSelected() {
   if (!confirm(`Xóa ${selected.size} sản phẩm đã chọn?`)) return;
-  products = products.filter(p=>!selected.has(p.id));
-  selected.clear();
-  Utils.toast('Đã xóa sản phẩm đã chọn', 'info');
-  renderTable();
+  try {
+    await Promise.all([...selected].map(id => API.delete(`/products/${id}`, true)));
+    selected.clear();
+    Utils.toast('Đã xóa sản phẩm đã chọn', 'info');
+    await loadProducts();
+  } catch (e) {
+    Utils.toast('Xóa thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
-function saveProduct() {
+function activateTab(paneId) {
+  const link = document.querySelector(`#productTabs a[href="#${paneId}"]`);
+  if (link) new bootstrap.Tab(link).show();
+}
+
+async function saveProduct() {
   const name = document.getElementById('fName').value.trim();
   const brand = document.getElementById('fBrand').value;
   const price = +document.getElementById('fPrice').value;
   const stock = +document.getElementById('fStock').value;
-  if (!name) { Utils.toast('Vui lòng nhập tên sản phẩm', 'error'); return; }
-  if (!brand) { Utils.toast('Vui lòng chọn thương hiệu', 'error'); return; }
-  if (!price) { Utils.toast('Vui lòng nhập giá bán', 'error'); return; }
+  if (!name) { activateTab('tabBasic'); Utils.toast('Vui lòng nhập tên sản phẩm (tab "Thông tin cơ bản")', 'error'); return; }
+  if (!brand) { activateTab('tabBasic'); Utils.toast('Vui lòng chọn thương hiệu (tab "Thông tin cơ bản")', 'error'); return; }
+  if (!price) { activateTab('tabPricing'); Utils.toast('Vui lòng nhập giá bán (tab "Giá & Kho")', 'error'); return; }
 
   const imgUrls = [...document.querySelectorAll('.img-url-input')].map(i=>i.value.trim()).filter(Boolean);
 
-  if (editId) {
-    const idx = products.findIndex(p=>p.id===editId);
-    if (idx>=0) Object.assign(products[idx], { name, brand, price, oldPrice:+document.getElementById('fOldPrice').value||null, stock, status:document.getElementById('fStatus').value, images:imgUrls, sku:document.getElementById('fSku').value });
-    Utils.toast('Đã cập nhật sản phẩm');
-  } else {
-    products.unshift({ id:Date.now(), name, brand, price, oldPrice:+document.getElementById('fOldPrice').value||null, stock, sold:0, status:document.getElementById('fStatus').value, images:imgUrls, sku:document.getElementById('fSku').value, createdAt:new Date().toISOString() });
-    Utils.toast('Đã thêm sản phẩm mới');
-  }
+  const payload = {
+    name,
+    sku: document.getElementById('fSku').value.trim() || null,
+    brand,
+    color: document.getElementById('fColor').value.trim() || null,
+    description: document.getElementById('fDesc').value.trim() || null,
+    descriptionLong: document.getElementById('fDescLong').value.trim() || null,
+    cpu: document.getElementById('fCpu').value.trim() || null,
+    ram: document.getElementById('fRam').value,
+    storage: document.getElementById('fStorage').value,
+    display: document.getElementById('fDisplay').value.trim() || null,
+    camera: document.getElementById('fCamera').value.trim() || null,
+    battery: document.getElementById('fBattery').value.trim() || null,
+    charging: document.getElementById('fCharging').value.trim() || null,
+    os: document.getElementById('fOs').value.trim() || null,
+    connectivity: document.getElementById('fConnect').value.trim() || null,
+    sim: document.getElementById('fSim').value.trim() || null,
+    price,
+    oldPrice: +document.getElementById('fOldPrice').value || null,
+    costPrice: +document.getElementById('fCostPrice').value || null,
+    stock,
+    lowStockThreshold: +document.getElementById('fLowStock').value || 5,
+    weight: +document.getElementById('fWeight').value || null,
+    images: imgUrls,
+    status: STATUS_UI_TO_API[document.getElementById('fStatus').value] || 'ACTIVE',
+    isNew: document.getElementById('fIsNew').checked,
+    isFeatured: document.getElementById('fIsFeatured').checked,
+    isHot: document.getElementById('fIsHot').checked
+  };
 
-  bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-  renderTable();
+  try {
+    if (editId) {
+      await API.put(`/products/${editId}`, payload, true);
+      Utils.toast('Đã cập nhật sản phẩm');
+    } else {
+      await API.post('/products', payload, true);
+      Utils.toast('Đã thêm sản phẩm mới');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+    await loadProducts();
+  } catch (e) {
+    Utils.toast('Lưu thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
 function addImageInput() {
@@ -468,7 +556,7 @@ function exportCSV() {
 
 function importCSV() { Utils.toast('Chức năng import sẽ được tích hợp với backend Java', 'info'); }
 
-renderTable();
+loadProducts();
 </script>
 </body>
 </html>

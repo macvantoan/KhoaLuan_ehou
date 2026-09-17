@@ -26,6 +26,15 @@ const API = {
         const text = await r.text();
         return text ? JSON.parse(text) : null;
     },
+    patch: async (url, data, auth = false) => {
+        const h = { 'Content-Type': 'application/json' };
+        if (auth) h['Authorization'] = 'Bearer ' + Auth.token();
+        const r = await fetch(API.BASE + url, { method: 'PATCH', headers: h, body: JSON.stringify(data) });
+        if (r.status === 401) { Auth.logout(); return null; }
+        if (!r.ok) throw new Error(await r.text());
+        const text = await r.text();
+        return text ? JSON.parse(text) : null;
+    },
     delete: async (url, auth = false) => {
         const h = { 'Content-Type': 'application/json' };
         if (auth) h['Authorization'] = 'Bearer ' + Auth.token();

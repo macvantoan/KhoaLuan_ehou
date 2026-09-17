@@ -179,14 +179,19 @@ async function handleRegister(e) {
     suc.textContent = 'Đăng ký thành công! Đang chuyển hướng...';
     suc.classList.remove('d-none');
     setTimeout(() => window.location.href = 'login.html', 2000);
-  } catch {
-    // Demo success
-    suc.textContent = 'Đăng ký thành công! Vui lòng đăng nhập.';
-    suc.classList.remove('d-none');
-    setTimeout(() => window.location.href = 'login.html', 2000);
+    return;
+  } catch (ex) {
+    let msg = 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin (số điện thoại phải có 10 số, bắt đầu 03-09).';
+    try {
+      const body = JSON.parse(ex.message);
+      if (body && body.message) msg = body.message;
+    } catch {}
+    err.textContent = msg;
+    err.classList.remove('d-none');
   }
 
   btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Tạo tài khoản';
   btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Tạo tài khoản';
 }
 </script>

@@ -74,14 +74,46 @@
 <script src="js/config.js"></script>
 <script src="js/cart.js"></script>
 <script>
-const MOCK_ORDERS = [
-  { id:'PS24010001', date:'2024-01-15 10:30', status:'DELIVERED', items:[{name:'iPhone 15 Pro Max 256GB',qty:1,price:34990000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-pro-max.png'}], total:34990000, address:'123 Lê Lợi, Q.1, TP.HCM', payment:'COD', shipping:'Giao hàng tiêu chuẩn', note:'' },
-  { id:'PS24020015', date:'2024-02-20 14:15', status:'SHIPPING', items:[{name:'Samsung Galaxy A55 5G 256GB',qty:1,price:11490000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/s/a/samsung-a55.png'},{name:'Ốp lưng Samsung A55',qty:2,price:150000,img:''}], total:11790000, address:'456 Nguyễn Huệ, Q.1, TP.HCM', payment:'BANKING', shipping:'Giao hàng nhanh', note:'Giao giờ hành chính' },
-  { id:'PS24030022', date:'2024-03-05 09:00', status:'PENDING', items:[{name:'Xiaomi Redmi Note 13 Pro 256GB',qty:1,price:8490000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/r/e/redmi-note-13-pro.png'}], total:8490000, address:'789 Hai Bà Trưng, Q.3, TP.HCM', payment:'MOMO', shipping:'Giao hàng tiêu chuẩn', note:'' },
-  { id:'PS24010005', date:'2024-01-08 16:00', status:'CANCELLED', items:[{name:'iPhone SE 3 64GB',qty:1,price:12490000,img:'https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-se-3.png'}], total:12490000, address:'321 Đinh Tiên Hoàng, Q.Bình Thạnh, TP.HCM', payment:'COD', shipping:'Giao hàng tiêu chuẩn', note:'' },
-];
+function apiErrorMessage(e) {
+  try { const j = JSON.parse(e.message); return j.message || e.message; } catch { return e.message; }
+}
 
+const PAY_LABEL = { COD:'Thanh toán khi nhận hàng', BANKING:'Chuyển khoản ngân hàng', MOMO:'Ví MoMo', VNPAY:'Thẻ tín dụng', ZALOPAY:'Ví ZaloPay' };
+const SHIP_LABEL = { STANDARD:'Giao hàng tiêu chuẩn', EXPRESS:'Giao hàng nhanh', SAME_DAY:'Giao ngay trong ngày' };
+
+let orders = [];
 let statusFilter = null;
+
+function mapFromApi(o) {
+  const address = [o.shippingAddress, o.ward, o.district, o.province].filter(Boolean).join(', ');
+  return {
+    id: o.orderCode,
+    date: o.createdAt,
+    status: o.status,
+    items: (o.items || []).map(i => ({ name: i.productName, qty: i.quantity, price: i.unitPrice, img: i.productImage })),
+    total: o.totalAmount,
+    address,
+    payment: o.paymentMethod,
+    shipping: SHIP_LABEL[o.shippingMethod] || o.shippingMethod,
+    note: o.note || '',
+    cancelledReason: o.cancelledReason || ''
+  };
+}
+
+async function loadOrders() {
+  if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
+  Utils.loading(true);
+  try {
+    const res = await API.get('/orders', true);
+    orders = (res || []).map(mapFromApi);
+  } catch (e) {
+    Utils.toast('Không tải được đơn hàng: ' + apiErrorMessage(e), 'error');
+    orders = [];
+  } finally {
+    Utils.loading(false);
+    renderOrders();
+  }
+}
 
 function filterStatus(status, btn) {
   statusFilter = status;
@@ -98,15 +130,15 @@ function renderOrders() {
     document.getElementById('avatarInitial').textContent = (u.fullName||u.username||'U')[0].toUpperCase();
   }
 
-  let orders = statusFilter ? MOCK_ORDERS.filter(o=>o.status===statusFilter) : MOCK_ORDERS;
+  let filtered = statusFilter ? orders.filter(o=>o.status===statusFilter) : orders;
   const el = document.getElementById('ordersList');
 
-  if (!orders.length) {
+  if (!filtered.length) {
     el.innerHTML = `<div class="empty-state"><i class="bi bi-bag-x fs-1"></i><h5 class="mt-3">Không có đơn hàng</h5></div>`;
     return;
   }
 
-  el.innerHTML = orders.map(o => {
+  el.innerHTML = filtered.map(o => {
     const [label, cls] = Utils.statusLabel(o.status);
     const trackSteps = ['PENDING','CONFIRMED','SHIPPING','DELIVERED'];
     const trackIdx = trackSteps.indexOf(o.status);
@@ -158,10 +190,9 @@ function renderOrders() {
 }
 
 function viewDetail(id) {
-  const o = MOCK_ORDERS.find(x=>x.id===id);
+  const o = orders.find(x=>x.id===id);
   if (!o) return;
   const [label, cls] = Utils.statusLabel(o.status);
-  const payMap = { COD:'Thanh toán khi nhận hàng', BANKING:'Chuyển khoản ngân hàng', MOMO:'Ví MoMo', VNPAY:'Thẻ tín dụng' };
 
   document.getElementById('orderModalBody').innerHTML = `
     <div class="row g-3">
@@ -170,11 +201,12 @@ function viewDetail(id) {
         <p class="small mb-1"><span class="text-muted">Ngày đặt:</span> ${new Date(o.date).toLocaleString('vi-VN')}</p>
         <p class="small mb-1"><span class="text-muted">Trạng thái:</span> <span class="${cls}">${label}</span></p>
         <p class="small mb-1"><span class="text-muted">Vận chuyển:</span> ${o.shipping}</p>
-        <p class="small mb-0"><span class="text-muted">Thanh toán:</span> ${payMap[o.payment]||o.payment}</p>
+        <p class="small mb-0"><span class="text-muted">Thanh toán:</span> ${PAY_LABEL[o.payment]||o.payment}</p>
       </div>
       <div class="col-md-6"><h6 class="fw-700 mb-2">Địa chỉ giao hàng</h6>
         <p class="small">${o.address}</p>
         ${o.note?`<p class="small text-muted"><i class="bi bi-sticky me-1"></i>${o.note}</p>`:''}
+        ${o.cancelledReason?`<p class="small text-danger"><i class="bi bi-x-circle me-1"></i>Lý do hủy: ${o.cancelledReason}</p>`:''}
       </div>
       <div class="col-12"><h6 class="fw-700 mb-2">Sản phẩm</h6>
         ${o.items.map(item=>`
@@ -194,12 +226,15 @@ function viewDetail(id) {
   new bootstrap.Modal(document.getElementById('orderModal')).show();
 }
 
-function cancelOrder(id) {
+async function cancelOrder(id) {
   if (!confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
-  const o = MOCK_ORDERS.find(x=>x.id===id);
-  if (o) o.status = 'CANCELLED';
-  Utils.toast('Đã hủy đơn hàng', 'info');
-  renderOrders();
+  try {
+    await API.patch(`/orders/${id}/cancel`, {}, true);
+    Utils.toast('Đã hủy đơn hàng', 'info');
+    await loadOrders();
+  } catch (e) {
+    Utils.toast('Hủy đơn thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
 function renderNavAuth() {
@@ -210,7 +245,7 @@ function renderNavAuth() {
 }
 
 renderNavAuth();
-renderOrders();
+loadOrders();
 </script>
 </body>
 </html>

@@ -19,6 +19,7 @@
       <a href="analytics.html" class="sidebar-link"><i class="bi bi-graph-up"></i>Thống kê</a>
       <div class="sidebar-label">Quản lý</div>
       <a href="products.html" class="sidebar-link"><i class="bi bi-phone"></i>Sản phẩm</a>
+      <a href="categories.html" class="sidebar-link"><i class="bi bi-tags"></i>Danh mục</a>
       <a href="orders.html" class="sidebar-link active"><i class="bi bi-bag"></i>Đơn hàng<span class="badge bg-danger ms-auto">3</span></a>
       <a href="customers.html" class="sidebar-link"><i class="bi bi-people"></i>Khách hàng</a>
       <div class="sidebar-label">Kho hàng</div>
@@ -160,15 +161,48 @@
 <script>
 if (!Auth.isAdmin()) window.location.href = '../login.html';
 
-let orders = [
-  { id:'PS24030022', customer:'Nguyễn Văn An', phone:'0901234567', email:'an@email.com', items:[{name:'Xiaomi Redmi Note 13 Pro 256GB',qty:1,price:8490000,img:''}], total:8490000, payment:'MOMO', shipping:'Giao hàng tiêu chuẩn', shippingFee:0, address:'789 Hai Bà Trưng, Q.3, TP.HCM', status:'PENDING', date:'2024-03-05 09:00', note:'' },
-  { id:'PS24020015', customer:'Trần Thị Bình', phone:'0912345678', email:'binh@email.com', items:[{name:'Samsung Galaxy A55 5G 256GB',qty:1,price:11490000,img:''},{name:'Ốp lưng',qty:2,price:150000,img:''}], total:11790000, payment:'BANKING', shipping:'Giao hàng nhanh', shippingFee:30000, address:'456 Nguyễn Huệ, Q.1, TP.HCM', status:'SHIPPING', date:'2024-02-20 14:15', note:'Giao giờ hành chính' },
-  { id:'PS24020009', customer:'Phạm Thu Hà', phone:'0923456789', email:'ha@email.com', items:[{name:'OPPO Reno 11 Pro 256GB',qty:1,price:13990000,img:''}], total:13990000, payment:'COD', shipping:'Giao hàng tiêu chuẩn', shippingFee:0, address:'321 Lê Duẩn, Q.1, TP.HCM', status:'CONFIRMED', date:'2024-02-18 11:30', note:'' },
-  { id:'PS24010001', customer:'Lê Minh Cường', phone:'0934567890', email:'cuong@email.com', items:[{name:'iPhone 15 Pro Max 256GB',qty:1,price:34990000,img:''}], total:34990000, payment:'VNPAY', shipping:'Giao hàng tiêu chuẩn', shippingFee:0, address:'123 Lê Lợi, Q.1, TP.HCM', status:'DELIVERED', date:'2024-01-15 10:30', note:'' },
-  { id:'PS24010005', customer:'Hoàng Văn Đức', phone:'0945678901', email:'duc@email.com', items:[{name:'iPhone SE 3 64GB',qty:1,price:12490000,img:''}], total:12490000, payment:'COD', shipping:'Giao hàng tiêu chuẩn', shippingFee:0, address:'654 Hai Bà Trưng, Q.3, TP.HCM', status:'CANCELLED', date:'2024-01-08 16:00', note:'' },
-  { id:'PS24030030', customer:'Ngô Thị Lan', phone:'0956789012', email:'lan@email.com', items:[{name:'Samsung Galaxy S24 Ultra 512GB',qty:1,price:31990000,img:''}], total:31990000, payment:'BANKING', shipping:'Giao hàng nhanh', shippingFee:30000, address:'789 Nguyễn Trãi, Q.5, TP.HCM', status:'PENDING', date:'2024-03-06 08:00', note:'' },
-  { id:'PS24030031', customer:'Vũ Minh Tuấn', phone:'0967890123', email:'tuan@email.com', items:[{name:'Vivo V29e 5G 256GB',qty:2,price:7990000,img:''}], total:15980000, payment:'MOMO', shipping:'Giao ngay trong ngày', shippingFee:60000, address:'111 Đinh Tiên Hoàng, Q.Bình Thạnh, TP.HCM', status:'PENDING', date:'2024-03-06 09:15', note:'Giao cả hai cùng lúc' },
-];
+function apiErrorMessage(e) {
+  try { const j = JSON.parse(e.message); return j.message || e.message; } catch { return e.message; }
+}
+
+const PAY_LABEL = { COD:'COD', BANKING:'Chuyển khoản', MOMO:'MoMo', VNPAY:'Thẻ/VNPAY', ZALOPAY:'ZaloPay' };
+const SHIP_LABEL = { STANDARD:'Giao hàng tiêu chuẩn', EXPRESS:'Giao hàng nhanh', SAME_DAY:'Giao ngay trong ngày' };
+
+let orders = [];
+
+function mapFromApi(o) {
+  const address = [o.shippingAddress, o.ward, o.district, o.province].filter(Boolean).join(', ');
+  return {
+    id: o.orderCode,
+    customer: o.recipientName,
+    phone: o.recipientPhone,
+    email: o.recipientEmail || '',
+    items: (o.items || []).map(i => ({ name: i.productName, qty: i.quantity, price: i.unitPrice, img: i.productImage })),
+    total: o.totalAmount,
+    shippingFee: o.shippingFee || 0,
+    payment: o.paymentMethod,
+    shipping: SHIP_LABEL[o.shippingMethod] || o.shippingMethod,
+    address,
+    status: o.status,
+    date: o.createdAt,
+    note: o.note || '',
+    cancelledReason: o.cancelledReason || ''
+  };
+}
+
+async function loadOrders() {
+  Utils.loading(true);
+  try {
+    const res = await API.get('/admin/orders?size=1000', true);
+    orders = (res.content || []).map(mapFromApi);
+  } catch (e) {
+    Utils.toast('Không tải được danh sách đơn hàng: ' + apiErrorMessage(e), 'error');
+    orders = [];
+  } finally {
+    Utils.loading(false);
+    renderOrders();
+  }
+}
 
 let currentOrderId = null, page = 1; const PER = 10;
 
@@ -206,8 +240,6 @@ function renderOrders() {
   document.getElementById('totalRevenue').textContent = Utils.fmt(totalRev);
   updateStats();
 
-  const payMap = { COD:'COD', BANKING:'Chuyển khoản', MOMO:'MoMo', VNPAY:'Thẻ/VNPAY' };
-
   document.getElementById('ordersTbody').innerHTML = paged.length ? paged.map(o => {
     const [label,cls] = Utils.statusLabel(o.status);
     return `<tr>
@@ -217,9 +249,9 @@ function renderOrders() {
         <div class="fw-600 small">${o.customer}</div>
         <div class="text-muted" style="font-size:.72rem">${o.phone}</div>
       </td>
-      <td class="small text-muted">${o.items[0].name}${o.items.length>1?` +${o.items.length-1} SP`:''}</td>
+      <td class="small text-muted">${o.items[0]?.name || ''}${o.items.length>1?` +${o.items.length-1} SP`:''}</td>
       <td class="fw-700 text-danger">${Utils.fmt(o.total)}</td>
-      <td><span class="badge bg-secondary">${payMap[o.payment]||o.payment}</span></td>
+      <td><span class="badge bg-secondary">${PAY_LABEL[o.payment]||o.payment}</span></td>
       <td class="small text-muted">${new Date(o.date).toLocaleDateString('vi-VN')}</td>
       <td><span class="${cls}">${label}</span></td>
       <td>
@@ -253,7 +285,7 @@ function viewOrder(id) {
   currentOrderId = id;
   document.getElementById('detailOrderId').textContent = '#'+id;
   const [label,cls] = Utils.statusLabel(o.status);
-  const payMap = { COD:'Thanh toán khi nhận hàng', BANKING:'Chuyển khoản ngân hàng', MOMO:'Ví MoMo', VNPAY:'Thẻ/VNPAY' };
+  const payFullMap = { COD:'Thanh toán khi nhận hàng', BANKING:'Chuyển khoản ngân hàng', MOMO:'Ví MoMo', VNPAY:'Thẻ/VNPAY', ZALOPAY:'Ví ZaloPay' };
 
   document.getElementById('orderDetailBody').innerHTML = `
     <div class="row g-3">
@@ -269,8 +301,9 @@ function viewOrder(id) {
         <p class="small mb-1">Ngày đặt: <b>${new Date(o.date).toLocaleString('vi-VN')}</b></p>
         <p class="small mb-1">Trạng thái: <span class="${cls}">${label}</span></p>
         <p class="small mb-1">Vận chuyển: <b>${o.shipping}</b></p>
-        <p class="small mb-0">Thanh toán: <b>${payMap[o.payment]}</b></p>
+        <p class="small mb-0">Thanh toán: <b>${payFullMap[o.payment] || o.payment}</b></p>
         ${o.note?`<p class="small mt-1 text-muted"><i class="bi bi-sticky me-1"></i>${o.note}</p>`:''}
+        ${o.cancelledReason?`<p class="small mt-1 text-danger"><i class="bi bi-x-circle me-1"></i>Lý do hủy: ${o.cancelledReason}</p>`:''}
       </div>
       <div class="col-12">
         <h6 class="fw-700 mb-2">Sản phẩm</h6>
@@ -304,21 +337,27 @@ function openStatusModal(id) {
   new bootstrap.Modal(document.getElementById('statusModal')).show();
 }
 
-function confirmStatusUpdate() {
+async function confirmStatusUpdate() {
   const newStatus = document.getElementById('newStatusSelect').value;
-  const o = orders.find(x=>x.id===currentOrderId);
-  if (o) { o.status = newStatus; }
-  bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
-  Utils.toast('Đã cập nhật trạng thái đơn hàng');
-  renderOrders();
+  try {
+    await API.patch(`/admin/orders/${currentOrderId}/status`, { status: newStatus }, true);
+    bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+    Utils.toast('Đã cập nhật trạng thái đơn hàng');
+    await loadOrders();
+  } catch (e) {
+    Utils.toast('Cập nhật thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
-function quickConfirm(id) {
-  const o = orders.find(x=>x.id===id);
-  if (o) o.status = 'CONFIRMED';
-  bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'))?.hide();
-  Utils.toast('Đã xác nhận đơn hàng #' + id);
-  renderOrders();
+async function quickConfirm(id) {
+  try {
+    await API.patch(`/admin/orders/${id}/status`, { status: 'CONFIRMED' }, true);
+    bootstrap.Modal.getInstance(document.getElementById('orderDetailModal'))?.hide();
+    Utils.toast('Đã xác nhận đơn hàng #' + id);
+    await loadOrders();
+  } catch (e) {
+    Utils.toast('Xác nhận thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
 function toggleAllOrders(cb) { document.querySelectorAll('.order-check').forEach(c=>c.checked=cb.checked); }
@@ -351,7 +390,7 @@ function exportOrders() {
 
 function printOrders() { Utils.toast('Đang in danh sách đơn hàng...', 'info'); window.print(); }
 
-renderOrders();
+loadOrders();
 </script>
 </body>
 </html>

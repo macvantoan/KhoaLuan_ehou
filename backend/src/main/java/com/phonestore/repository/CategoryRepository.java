@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findBySlug(String slug);
     List<Category> findByIsActiveTrueOrderBySortOrderAsc();
+    List<Category> findAllByOrderBySortOrderAsc();
+    boolean existsBySlug(String slug);
 }

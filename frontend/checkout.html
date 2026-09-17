@@ -281,6 +281,11 @@ function loadDistricts() {
 }
 
 function goToPayment() {
+  if (!Auth.isLoggedIn()) {
+    Utils.toast('Vui lòng đăng nhập để đặt hàng', 'error');
+    window.location.href = 'login.html';
+    return;
+  }
   const required = ['fullName','phone','address','province','district','ward'];
   for (const id of required) {
     if (!document.getElementById(id).value.trim()) {
@@ -319,17 +324,46 @@ function formatCard(inp) {
   inp.value = inp.value.replace(/\D/g,'').replace(/(\d{4})/g,'$1 ').trim();
 }
 
-function placeOrder() {
+function apiErrorMessage(e) {
+  try { const j = JSON.parse(e.message); return j.message || e.message; } catch { return e.message; }
+}
+
+const SHIP_METHOD_MAP = { standard: 'STANDARD', express: 'EXPRESS', same_day: 'SAME_DAY' };
+
+async function placeOrder() {
+  if (!Auth.isLoggedIn()) {
+    Utils.toast('Vui lòng đăng nhập để đặt hàng', 'error');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const payment = document.querySelector('input[name="payment"]:checked')?.value;
+  const shippingVal = document.querySelector('input[name="shipping"]:checked')?.value;
+
+  const payload = {
+    recipientName: document.getElementById('fullName').value.trim(),
+    recipientPhone: document.getElementById('phone').value.replace(/\s/g,'').trim(),
+    recipientEmail: document.getElementById('email').value.trim() || null,
+    shippingAddress: document.getElementById('address').value.trim(),
+    province: document.getElementById('province').value,
+    district: document.getElementById('district').value,
+    ward: document.getElementById('ward').value.trim(),
+    note: document.getElementById('note').value.trim() || null,
+    paymentMethod: payment,
+    shippingMethod: SHIP_METHOD_MAP[shippingVal] || 'STANDARD',
+    items: items.map(i => ({ productId: i.id, quantity: i.qty }))
+  };
+
   Utils.loading(true);
-  setTimeout(() => {
+  try {
+    const res = await API.post('/orders', payload, true);
     Utils.loading(false);
+
     const paymentMap = { COD:'Thanh toán khi nhận hàng', BANKING:'Chuyển khoản ngân hàng', MOMO:'Ví MoMo', VNPAY:'Thẻ tín dụng/Ghi nợ' };
-    const payment = document.querySelector('input[name="payment"]:checked')?.value;
     const disc = Math.round(subtotal * couponDiscount / 100);
     const total = subtotal - disc + shippingFee;
-    const code = 'PS' + Date.now().toString().slice(-8);
 
-    document.getElementById('orderCode').textContent = '#' + code;
+    document.getElementById('orderCode').textContent = '#' + res.orderCode;
     document.getElementById('paymentSummary').textContent = paymentMap[payment] || payment;
     document.getElementById('finalTotal').textContent = Utils.fmt(total);
 
@@ -340,8 +374,13 @@ function placeOrder() {
     document.getElementById('step4El').classList.add('active');
     document.getElementById('step4El').querySelector('.step-circle').innerHTML = '<i class="bi bi-check"></i>';
     Cart.clear();
+    sessionStorage.removeItem('checkoutItems');
+    sessionStorage.removeItem('couponDiscount');
     window.scrollTo({top:0,behavior:'smooth'});
-  }, 1500);
+  } catch (e) {
+    Utils.loading(false);
+    Utils.toast('Đặt hàng thất bại: ' + apiErrorMessage(e), 'error');
+  }
 }
 
 init();

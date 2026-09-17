@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý tồn kho - PhoneStore Admin</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="admin-wrapper">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-brand"><i class="bi bi-phone-fill"></i><span>PhoneStore Admin</span></div>
+    <nav class="sidebar-menu">
+      <div class="sidebar-label">Tổng quan</div>
+      <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a href="analytics.html" class="sidebar-link"><i class="bi bi-graph-up"></i>Thống kê</a>
+      <div class="sidebar-label">Quản lý</div>
+      <a href="products.html" class="sidebar-link"><i class="bi bi-phone"></i>Sản phẩm</a>
+      <a href="categories.html" class="sidebar-link"><i class="bi bi-tags"></i>Danh mục</a>
+      <a href="orders.html" class="sidebar-link"><i class="bi bi-bag"></i>Đơn hàng<span class="badge bg-danger ms-auto">3</span></a>
+      <a href="customers.html" class="sidebar-link"><i class="bi bi-people"></i>Khách hàng</a>
+      <div class="sidebar-label">Kho hàng</div>
+      <a href="inventory.html" class="sidebar-link active"><i class="bi bi-box-seam"></i>Tồn kho</a>
+      <div class="sidebar-label">Hệ thống</div>
+      <a href="../index.html" class="sidebar-link"><i class="bi bi-house"></i>Xem trang web</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="bi bi-box-arrow-right"></i>Đăng xuất</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="bi bi-list fs-5"></i></button>
+        <div class="page-title">Quản lý tồn kho</div>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm" onclick="loadProducts()"><i class="bi bi-arrow-clockwise me-1"></i>Làm mới</button>
+    </div>
+
+    <div class="admin-body">
+      <!-- STAT CARDS -->
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Tổng sản phẩm</div>
+                <div class="stat-value mt-1" id="statTotal">0</div>
+              </div>
+              <div class="icon-box" style="background:#e7f3ff"><i class="bi bi-phone text-primary"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Tổng tồn kho</div>
+                <div class="stat-value mt-1" id="statUnits">0</div>
+              </div>
+              <div class="icon-box" style="background:#e8f7ee"><i class="bi bi-box-seam text-success"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Sắp hết hàng</div>
+                <div class="stat-value mt-1" id="statLow">0</div>
+              </div>
+              <div class="icon-box" style="background:#fff3e0"><i class="bi bi-exclamation-triangle text-warning"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="stat-card card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Hết hàng</div>
+                <div class="stat-value mt-1" id="statOut">0</div>
+              </div>
+              <div class="icon-box" style="background:#fdeaea"><i class="bi bi-x-octagon text-danger"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="admin-card mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-4">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control border-start-0" id="searchInv" placeholder="Tìm theo tên, SKU..." oninput="renderTable()">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="filterBrandInv" onchange="renderTable()">
+              <option value="">Tất cả thương hiệu</option>
+              <option>iPhone</option><option>Samsung</option><option>Xiaomi</option><option>OPPO</option><option>Vivo</option><option>Realme</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="sortInv" onchange="renderTable()">
+              <option value="stock_asc">Tồn kho: thấp → cao</option>
+              <option value="stock_desc">Tồn kho: cao → thấp</option>
+              <option value="name">Tên A-Z</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="onlyLowStock" onchange="renderTable()">
+              <label class="form-check-label small" for="onlyLowStock">Chỉ hiện sắp/hết hàng</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVENTORY TABLE -->
+      <div class="admin-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="small text-muted">Hiển thị <span id="showCountInv">0</span> / <span id="totalProdInv">0</span> sản phẩm</div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table w-100" id="inventoryTable">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Thương hiệu</th>
+                <th>Tồn kho hiện tại</th>
+                <th>Ngưỡng cảnh báo</th>
+                <th>Trạng thái</th>
+                <th style="width:220px">Điều chỉnh tồn kho</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/cart.js"></script>
+<script>
+if (!Auth.isAdmin()) window.location.href = '../login.html';
+
+function apiErrorMessage(e) {
+  try { const j = JSON.parse(e.message); return j.message || e.message; } catch { return e.message; }
+}
+
+let products = [];
+
+function stockState(p) {
+  if (p.stock <= 0) return 'out';
+  if (p.stock <= (p.lowStockThreshold ?? 5)) return 'low';
+  return 'ok';
+}
+
+async function loadProducts() {
+  Utils.loading(true);
+  try {
+    const res = await API.get('/products?size=1000&status=ALL');
+    products = res.content || [];
+  } catch (e) {
+    Utils.toast('Không tải được danh sách tồn kho: ' + apiErrorMessage(e), 'error');
+    products = [];
+  } finally {
+    Utils.loading(false);
+    renderStats();
+    renderTable();
+  }
+}
+
+function renderStats() {
+  document.getElementById('statTotal').textContent = products.length;
+  document.getElementById('statUnits').textContent = products.reduce((s, p) => s + (p.stock || 0), 0);
+  document.getElementById('statLow').textContent = products.filter(p => stockState(p) === 'low').length;
+  document.getElementById('statOut').textContent = products.filter(p => stockState(p) === 'out').length;
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInv').value.toLowerCase();
+  const brand = document.getElementById('filterBrandInv').value;
+  const sort = document.getElementById('sortInv').value;
+  const onlyLow = document.getElementById('onlyLowStock').checked;
+
+  let list = products.filter(p => {
+    if (q && !p.name.toLowerCase().includes(q) && !(p.sku || '').toLowerCase().includes(q)) return false;
+    if (brand && p.brand !== brand) return false;
+    if (onlyLow && stockState(p) === 'ok') return false;
+    return true;
+  });
+
+  if (sort === 'stock_asc') list.sort((a, b) => a.stock - b.stock);
+  else if (sort === 'stock_desc') list.sort((a, b) => b.stock - a.stock);
+  else list.sort((a, b) => a.name.localeCompare(b.name));
+  return list;
+}
+
+const stateBadge = {
+  out: '<span class="badge bg-danger">Hết hàng</span>',
+  low: '<span class="badge bg-warning text-dark">Sắp hết</span>',
+  ok: '<span class="badge bg-success">Còn hàng</span>'
+};
+
+function renderTable() {
+  const filtered = getFiltered();
+  document.getElementById('showCountInv').textContent = filtered.length;
+  document.getElementById('totalProdInv').textContent = products.length;
+
+  document.getElementById('inventoryTbody').innerHTML = filtered.length ? filtered.map(p => `
+    <tr>
+      <td>
+        <div class="d-flex align-items-center gap-2">
+          <img src="${p.images?.[0] || '../images/no-image.svg'}" class="product-thumb" onerror="this.src='../images/no-image.svg'">
+          <div><div class="fw-600 small">${p.name}</div><div class="text-muted" style="font-size:.72rem">SKU: ${p.sku || '-'}</div></div>
+        </div>
+      </td>
+      <td><span class="badge bg-primary">${p.brand}</span></td>
+      <td><span class="${stockState(p) !== 'ok' ? 'text-danger fw-700' : 'fw-600'}">${p.stock}</span></td>
+      <td class="text-muted">${p.lowStockThreshold ?? 5}</td>
+      <td>${stateBadge[stockState(p)]}</td>
+      <td>
+        <div class="input-group input-group-sm">
+          <input type="number" min="0" class="form-control" id="stockInput-${p.id}" value="${p.stock}">
+          <button class="btn btn-outline-primary" onclick="updateStock(${p.id})"><i class="bi bi-check-lg"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">Không tìm thấy sản phẩm nào</td></tr>';
+}
+
+async function updateStock(id) {
+  const input = document.getElementById('stockInput-' + id);
+  const stock = parseInt(input.value, 10);
+  if (isNaN(stock) || stock < 0) { Utils.toast('Số lượng tồn kho không hợp lệ', 'error'); return; }
+  try {
+    await API.patch(`/products/${id}/stock`, { stock }, true);
+    Utils.toast('Đã cập nhật tồn kho');
+    await loadProducts();
+  } catch (e) {
+    Utils.toast('Cập nhật thất bại: ' + apiErrorMessage(e), 'error');
+  }
+}
+
+loadProducts();
+</script>
+</body>
+</html>
